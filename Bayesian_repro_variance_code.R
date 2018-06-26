@@ -138,7 +138,7 @@ burnin<-10000
 nsamps<-20000
 ##run at 20,000 and 10,000
 nchains<-3
-model <- jags(data = Bayes.in, parameters.to.save = var.names, model.file = "Reproskew3_6Mar2017.txt", n.chains = nchains, n.iter = nsamps, n.burnin = burnin)
+model <- jags(data = Bayes.in, parameters.to.save = var.names, model.file = "Reproskew_JAGS.txt", n.chains = nchains, n.iter = nsamps, n.burnin = burnin)
 
 model
 
