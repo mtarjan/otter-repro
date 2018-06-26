@@ -1,0 +1,43 @@
+model { 
+    # gamma0~dunif(-100,100)       
+    #bta1 ~ dnorm(0,.001)
+    #bta2 ~ dnorm(0,.001)
+	# Beta = paternity detection sensitivity
+	#  (probability that a paternity is correctly assigned
+	#   given that both pup and true father have been sampled)
+    bta ~ dbeta(2,2)
+	mu~dunif(0.01,10) 	 
+    sig~dgamma(1.5,1) T(0.1, 6) 	
+    tau.R <- 1/(sig*sig)
+    for (y in 1:Nyrs) {
+        # estP[y] <- ilogit(-5 + bta1*proppup[y] +bta2*propdad[y])
+        # Npossible[y] <- round(Npuptot[y]*propdad[y]*scalefact)		
+        # Sires[y] ~ dbin(estP[y],Npossible[y])
+		Prob1[y] <- bta*propdad[y]
+		Prob2[y] <- bta*proppup[y]		
+		Sires[y] ~ dbin(Prob1[y],Npupsamp[y])		
+    }
+    # Assign relative paternity probabilities for each male
+ 	for (m in 1:nmales) {
+		# Q IS LIFETIME EXPECTED REPRO OUTPUT FOR MALE
+ 	    q[m] ~ dlnorm(mu,tau.R) 
+        TSires[m] ~ dpois(q[m]) 
+		#  meanprob[m] <- q[m]/maleyrs[m]
+		# Change to a constant # years expected repro output 
+         meanprob[m] <- q[m]/maleyrsmean      
+		# T[m,1:Nyrs] ~ dmulti(pi[m,1:Nyrs],TSires[m])		
+	}
+	# Calculate proportional contribution to sirings for each male
+    p <- TSires/sum(TSires)	
+	# Step through years and estimate true and observered paternities
+	for (y in 1:Nyrs) {
+		for (i in 1:Nm[y]) { 	       
+		  T[M[i,y],y] ~ dpois(meanprob[M[i,y]] )
+          obs[M[i,y],y] ~ dbin(Prob2[y],T[M[i,y],y]) 
+          }
+    }
+	# Calculate two indices of reproductive skew
+	S1 <- (sd(p)^2)/(mean(p)^2)
+    # S1 <- (sd(p)^2)/(mean(p))
+	S2 <- (nmales - 1/sum(p^2))/(nmales - 1)  
+}
