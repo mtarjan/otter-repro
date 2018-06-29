@@ -679,8 +679,8 @@ for (j in 1:length(per.change)) {
   Bayes.in$propdad<-propdad.original*per.change[j]/100+propdad.original ##assign percent change to proportion of dads sampled
   
   var.names<-c('S1', 'S2')
-  burnin<-1000
-  nsamps<-2000
+  burnin<-10000
+  nsamps<-20000
   ##run at 20,000 and 10,000
   nchains<-3
   model <- jags(data = Bayes.in, parameters.to.save = var.names, model.file = "Reproskew_JAGS.txt", n.chains = nchains, n.iter = nsamps, n.burnin = burnin)
