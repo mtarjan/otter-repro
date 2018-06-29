@@ -707,7 +707,7 @@ plot2 <- plot2 + geom_point(size=4) + geom_errorbar(aes(ymin=S2q2.5, ymax=S2q97.
 plot2 <- plot2 + theme(panel.grid.minor=element_blank(), panel.grid.major=element_blank(), panel.background=element_blank(), axis.line=element_line(colour="black"), axis.ticks=element_line(colour="black"), axis.text=element_text(colour="black"), axis.text.x=element_text(size=12), axis.text.y=element_text(size=12), axis.title.x=element_text(vjust=0.4, size=12), axis.title.y=element_text(vjust=0.4, size=12)) 
 plot2 <- plot2 + xlab("Estimated prop. of males sampled") + ylab(expression(italic(S[3])~ "of repro. variance"))
 plot2 <- plot2 + theme(axis.title.y = element_text(vjust=1)) ##move y axis title away from axis
-plot2 <- plot2 + scale_y_continuous(breaks=seq(0,1, 0.1)) ##add more breaks in y axis
+plot2 <- plot2 + scale_y_continuous(breaks=seq(0,1, 0.05)) ##add more breaks in y axis
 plot2 <- plot2 + theme(axis.text.x = element_text(vjust = 1)) ##rotate x axis labels
 plot2 <- plot2 + scale_x_continuous(breaks = seq(0,1,0.1))
 plot2
