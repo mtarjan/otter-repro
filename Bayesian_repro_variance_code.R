@@ -457,7 +457,7 @@ models$Mirounga<-model.es
 models$Phoca<-model.hs
 
 ##PLOT INDEX 1
-tiff("Figures_genetics/index1_plot.tiff", family="Arial", height=6.5, width=7, units="in", compression="lzw", res=resolution, pointsize = 18)
+tiff(str_c(folder, "Figures/index1_plot.tiff"), family="Arial", height=6.5, width=7, units="in", compression="lzw", res=resolution, pointsize = 18)
 ##get limits
 par(mfrow=c(1,1), mgp=c(1.5,0.5,0), mar=c(3,3,1,1))
 xmax<-0
@@ -482,7 +482,7 @@ legend(x = xmax-xmax/2, y = ymax-ymax/10, legend = c("Sea otter", "Elephant seal
 dev.off()
 
 ##PLOT INDEX 2
-tiff("Figures_genetics/index2_plot.tiff", family="Arial", height=6.5, width=7, units="in", compression="lzw", res=resolution, pointsize = 18)
+tiff(str_c(folder, "Figures/index2_plot.tiff"), family="Arial", height=6.5, width=7, units="in", compression="lzw", res=resolution, pointsize = 18)
 ##get limits
 par(mfrow=c(1,1), mgp=c(1.5,0.5,0), mar=c(3,3,1,1))
 xmax<-0
@@ -522,7 +522,7 @@ Tsiresdist_CI$es<-Tsiresdist_CI.es
 Tsiresdist_CI$hs<-Tsiresdist_CI.hs
 
 ##PLOT SIRING FREQUENCY
-tiff("Figures_genetics/siring_freq_plot.tiff", family="Arial", height=6.5, width=7, units="in", compression="lzw", res=resolution, pointsize = 18)
+tiff(str_c(folder, "Figures/siring_freq_plot.tiff"), family="Arial", height=6.5, width=7, units="in", compression="lzw", res=resolution, pointsize = 18)
 par(mfrow=c(1,1), mgp=c(1.5,0.5,0))
 ymax<-0
 for (j in 1:length(Tsiresdist_CI)) {
@@ -543,7 +543,7 @@ legend(x = 12, y = ymax-ymax/10, legend = names(x.temp), col = color, lty = "sol
 dev.off()
 
 ##SIRING FREQUENCY PLOT 2
-tiff("Figures_genetics/siring_freq_plot2.tiff", family="Arial", height=9, width=6.5, units="in", compression="lzw", res=resolution, pointsize = 18)
+tiff(str_c(folder, "Figures/siring_freq_plot2.tiff"), family="Arial", height=9, width=6.5, units="in", compression="lzw", res=resolution, pointsize = 18)
 par(mfrow=c(3,1), mgp=c(1.5,0.5,0), mar = c(3,3,1,1))
 ymax<-0
 for (j in 1:length(Tsiresdist_CI)) {
@@ -570,7 +570,7 @@ for (j in 1:length(models)) {
 dev.off()
 
 ##PLOTS OF BETA 1 AND BETA 2
-tiff("Figures_genetics/beta_plot.tiff", family="Arial", height=6.5, width=7, units="in", compression="lzw", res=resolution, pointsize = 18)
+tiff(str_c(folder, "Figures/beta_plot.tiff"), family="Arial", height=6.5, width=7, units="in", compression="lzw", res=resolution, pointsize = 18)
 #par(mfrow=c(2,1), mar = c(3,3,0.25,0.25), mgp=c(1.5,0.5,0))
 #plot(density(model.so$sims.list$bta1), main="", xlab=expression(beta[1]), lwd=2, ylab="Density")
 #abline(v = model.so$q50$bta1, lwd=2)
@@ -592,7 +592,7 @@ dev.off()
 par(mfrow=c(1,1))
 
 ##PLOT SIRING FREQU FOR SEA OTTERS
-tiff("Figures_genetics/enhydra_siring_freq_plot.tiff", family="Arial", height=6.5, width=7, units="in", compression="lzw", res=resolution, pointsize = 18)
+tiff(str_c(folder, "Figures/enhydra_siring_freq_plot.tiff"), family="Arial", height=6.5, width=7, units="in", compression="lzw", res=resolution, pointsize = 18)
 par(mfrow=c(1,1), mgp=c(1.5,0.5,0), mar=c(3,3,1,1))
 ymax<-0
 for (j in 1) {
@@ -628,7 +628,7 @@ plot2
 # Define grid layout to locate plots and print each graph
 grid.arrange(plot1, plot2, ncol=2)
 
-tiff("Figures_genetics/variance_indices_plot.tiff", family="Arial", height=3.5, width=7, units="in", compression="lzw", res=resolution, pointsize = 12)
+tiff(str_c(folder, "Figures/variance_indices_plot.tiff"), family="Arial", height=3.5, width=7, units="in", compression="lzw", res=resolution, pointsize = 12)
 grid.arrange(plot1, plot2, ncol=2)
 dev.off()
 
@@ -717,7 +717,7 @@ grid.arrange(plot1, plot2, ncol=2)
 
 
 ##SAVE PLOT
-tiff("Figures_genetics/sample_size_indices_plot.tiff", family="Arial", height=3.5, width=7, units="in", compression="lzw", res=resolution, pointsize = 12)
+tiff(str_c(folder, "Figures/sample_size_indices_plot.tiff"), family="Arial", height=3.5, width=7, units="in", compression="lzw", res=resolution, pointsize = 12)
 grid.arrange(plot1, plot2, ncol=2)
 dev.off()
 
