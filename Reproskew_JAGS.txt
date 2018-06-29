@@ -22,9 +22,9 @@ model {
 		# Q IS LIFETIME EXPECTED REPRO OUTPUT FOR MALE
  	    q[m] ~ dlnorm(mu,tau.R) 
         TSires[m] ~ dpois(q[m]) 
-		#  meanprob[m] <- q[m]/maleyrs[m]
+		  meanprob[m] <- q[m]/maleyrs[m]
 		# Change to a constant # years expected repro output 
-         meanprob[m] <- q[m]/maleyrsmean      
+         #meanprob[m] <- q[m]/maleyrsmean      
 		# T[m,1:Nyrs] ~ dmulti(pi[m,1:Nyrs],TSires[m])		
 	}
 	# Calculate proportional contribution to sirings for each male

@@ -8,12 +8,19 @@ library(gridExtra) ##required for grid.arrange
 library(ggplot2)
 
 ##PREP DATA
+##folder with data files
+folder<-"C:/Users/max/Desktop/Tarjan/otter data/"
+library(stringr)
+
 ##PREP SEA OTTER DATA
 ##create list of potential sampled males and matrix for years they were active
 ##have ped.dat.y, info, and n.prop.samp
-bd.dates<-read.csv("birth_death_dates.csv") ##birth and death dates of all animals; different from info because I assume here that males are dead if there is no confirmation of life (only alive if confirmed alive by capture/resight)
-prop.samp<-read.csv("/Users/MaxTarjan/Dropbox/Thesis/Genetics_chapter2/Tim's ch2 repro variance analysis/prop_samp_28Apr16.csv")
-ped.dat.y<-read.csv('pedigraph_data_years_5Oct15.csv')
+bd.dates<-read.csv(str_c(folder, "birth_death_dates.csv"))
+#bd.dates<-read.csv("birth_death_dates.csv") ##birth and death dates of all animals; different from info because I assume here that males are dead if there is no confirmation of life (only alive if confirmed alive by capture/resight)
+#prop.samp<-read.csv("/Users/MaxTarjan/Dropbox/Thesis/Genetics_chapter2/Tim's ch2 repro variance analysis/prop_samp_28Apr16.csv")
+prop.samp<-read.csv(str_c(folder, "prop_samp_28Apr16.csv"))
+#ped.dat.y<-read.csv('pedigraph_data_years_5Oct15.csv')
+ped.dat.y<-read.csv(str_c(folder,'pedigraph_data_years_5Oct15.csv'))
 ##terms needed for model
 ##(nmales, Nyrs, scalefact, Sires, proppup, propdad, Npuptot, obs, Nm, M, maleyrs, pi)
 ##nmales = value. number of potential fathers that were sampled
@@ -123,9 +130,8 @@ Bayes.in$Npupsamp<-Npupsamp #number of pups sampled in each year
 
 names(Bayes.in)
 
-library(stringr)
 for (j in 1:length(Bayes.in)) {
-  write.csv(Bayes.in[[j]], str_c("Bayes_in/", names(Bayes.in)[j], ".csv"), row.names=F)
+  write.csv(Bayes.in[[j]], str_c(folder, "Bayes_in/", names(Bayes.in)[j], ".csv"), row.names=F)
 }
 
 ##BAYESIAN MODEL
@@ -180,7 +186,7 @@ Tsiresdist_m.so<-Tsiresdist_m
 Tsiresdist_CI.so<-Tsiresdist_CI
 
 ##PREP E SEAL DATA
-es.dat<-read.csv("southern_eseal_data.csv")
+es.dat<-read.csv(str_c(folder, "southern_eseal_data.csv"))
 ##sampled pups c(115, 77)
 ##sampled males c(78, 62)
 ##prop pups (54+90)/2
@@ -263,7 +269,7 @@ burnin<-10000
 nsamps<-20000
 ##run at 20,000 and 10,000
 nchains<-3
-model <- jags(data = Bayes.in, parameters.to.save = var.names, model.file = "Reproskew3_6Mar2017.txt", n.chains = nchains, n.iter = nsamps, n.burnin = burnin)
+model <- jags(data = Bayes.in, parameters.to.save = var.names, model.file = "Reproskew_JAGS.txt", n.chains = nchains, n.iter = nsamps, n.burnin = burnin)
 
 
 ##PLOTS
@@ -307,7 +313,7 @@ Tsiresdist_m.es<-Tsiresdist_m
 Tsiresdist_CI.es<-Tsiresdist_CI
 
 ##PREP HARBOR SEAL DATA
-hs.dat<-read.csv('harbor_seal_data.csv')
+hs.dat<-read.csv(str_c(folder, 'harbor_seal_data.csv'))
 
 nmales<-length(unique(hs.dat$male))
 Nyrs<-length(unique(hs.dat$year))
@@ -399,7 +405,7 @@ burnin<-10000
 nsamps<-20000
 ##run at 20,000 and 10,000
 nchains<-3
-model <- jags(data = Bayes.in, parameters.to.save = var.names, model.file = "Reproskew3_6Mar2017.txt", n.chains = nchains, n.iter = nsamps, n.burnin = burnin)
+model <- jags(data = Bayes.in, parameters.to.save = var.names, model.file = "Reproskew_JAGS.txt", n.chains = nchains, n.iter = nsamps, n.burnin = burnin)
 
 #plot(model)
 
@@ -653,13 +659,15 @@ print('beta mean sd'); mean(model.so$sims.list$bta); sd(model.so$sims.list$bta)
 per.change<-c(-50, -40, -30, -20, -10, 0, 10, 20, 30, 40, 50)
 
 Bayes.in<-list()
-files<-str_c('Bayes_in/', list.files('Bayes_in/'))
+files<-str_c(folder, 'Bayes_in/', list.files(str_c(folder,'Bayes_in/')))
 for (j in 1:length(files)) {
   file.temp<-as.matrix(read.csv(files[j]))
   if (ncol(file.temp)==1) {
     file.temp<-as.vector(file.temp)
   }
-  file.name.temp<-str_sub(files[j], 10, -5)
+  #file.name.temp<-str_sub(files[j], 10, -5)
+  file.name.temp<-str_split(files[j], "/")[[1]]
+  file.name.temp<-file.name.temp[length(file.name.temp)] %>% str_sub(start = 0, end=-5)
   Bayes.in[[file.name.temp]]<-file.temp
 }
 names(Bayes.in)
@@ -675,7 +683,7 @@ for (j in 1:length(per.change)) {
   nsamps<-2000
   ##run at 20,000 and 10,000
   nchains<-3
-  model <- jags(data = Bayes.in, parameters.to.save = var.names, model.file = "Reproskew3_6Mar2017.txt", n.chains = nchains, n.iter = nsamps, n.burnin = burnin)
+  model <- jags(data = Bayes.in, parameters.to.save = var.names, model.file = "Reproskew_JAGS.txt", n.chains = nchains, n.iter = nsamps, n.burnin = burnin)
   
   ##NEED TO SAVE EACH VERSION OF THE MODEL
   out<-rbind(out, c(per.change[j], mean(Bayes.in$propdad), model$q50$S1, model$q2.5$S1, model$q97.5$S1, model$q50$S2, model$q2.5$S2, model$q97.5$S2))
