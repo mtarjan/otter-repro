@@ -25,7 +25,7 @@ We evaluated model sensitivity by measuring the effect of varying model inputs (
 
 #Figures
 ```{r, echo=FALSE}
-knitr::include_graphics(path=str_c(folder, "Figures/enhydra_siring_frequency_plot.tiff"))
+knitr::include_graphics(path=str_c(folder, "Figures/enhydra_siring_freq_plot.tiff"))
 figure.num<-figure.num+1
 ```
 Fig `r figure.num`. Bayesian estimates of variation in siring success across male sea otters. Estimates reflect surviving female pups produced across each male’s lifetime. The solid line denotes the mean and shaded areas encompass the 95% confidence intervals.
