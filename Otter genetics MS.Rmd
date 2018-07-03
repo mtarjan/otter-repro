@@ -1,0 +1,43 @@
+---
+title: "Genetic analysis of reproductive variance in polygynous species and a sea otter case study"
+author: "Max Tarjan"
+date: "`r Sys.Date()`"
+output: word_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r echo=F, warning=FALSE, include=FALSE}
+source("Bayesian_repro_variance_code.R")
+figure.num<-0
+```
+
+#Results
+##Estimated reproductive variance in polygynous species
+According to Bayesian estimates, male sea otters sired a median of `r round(quantile(model.so$sims.list$TSires, 0.5),0)` surviving female pups across their lifetime (Figure 3). The most successful 10% of males sired ≥`r round(quantile(model.so$sims.list$TSires, 0.9),0)` surviving female pups. Standardized variance in male reproductive success was `r round(model.so$mean$S1,2)` (`r round(model.so$q2.5$S1,2)`, `r round(model.so$q97.5$S1,2)`) for sea otters (Figure 4). A second measure of reproductive variance, the effective number S (S3), reflects the evenness of the pup contribution by each male, where a value of 0 indicates that all males contribute equally to reproductive output and a value of 1 indicates that one male produced all pups. S3 for male sea otters was `r round(model.so$mean$S2,2)` (`r round(model.so$q2.5$S2,2)`, `r round(model.so$q97.5$S2,2)`), indicating a moderate degree of polygyny (Figure 4).
+
+Sea otters had lower estimated reproductive variance than elephant seals (standardized variance in LRS = `r round(model.es$mean$S1,2)` and S3 = `r round(model.es$mean$S2,2)`) and higher estimated reproductive variance than harbor seals (standardized variance in LRS = `r round(model.hs$mean$S1,2)` and S3 = `r round(model.hs$mean$S2,2)`) based on both indices of reproductive variance (Figure 4). According to Bayesian estimates, 50% of male elephant seals sired between zero and `r round(quantile(model.es$sims.list$TSires, 0.5),0)` pups across their lifetime, and the most successful 10% of males sired ≥`r round(quantile(model.es$sims.list$TSires, 0.9),0)` pups. Harbor seals showed much lower reproductive success and variance. Fifty percent of male harbor seals sired between zero and `r round(quantile(model.hs$sims.list$TSires, 0.5),0)` pup, and the most successful 10% of males sired ≥`r round(quantile(model.hs$sims.list$TSires, 0.9),0)` pups.
+
+##Model Sensitivity
+We evaluated model sensitivity by measuring the effect of varying model inputs (specifically estimated male population size) on model outputs (i.e. estimated reproductive variance) using the sea otter paternity data. A 50% decrease in our estimate of the proportion of males sampled, which corresponds to a 100% increase in estimated male population size, led to only a `r round((subset(out, per.change==-50)$S2q50-subset(out, per.change==0)$S2q50)/subset(out, per.change==0)$S2q50*100,0)`% decrease in the median estimated reproductive variance (i.e. S3) and the median remained within the 95% confidence intervals of the original estimate (Figure 5). These results illustrate that estimated male population size had a negligible effect on estimated reproductive variance, and that the model is robust to large error in estimated population size.
+
+#Figures
+```{r, echo=FALSE}
+knitr::include_graphics(path=str_c(folder, "Figures/enhydra_siring_frequency_plot.tiff"))
+figure.num<-figure.num+1
+```
+Fig `r figure.num`. Bayesian estimates of variation in siring success across male sea otters. Estimates reflect surviving female pups produced across each male’s lifetime. The solid line denotes the mean and shaded areas encompass the 95% confidence intervals.
+
+```{r, echo=FALSE}
+knitr::include_graphics(path=str_c(folder, "Figures/variance_indices_plot.tiff"))
+figure.num<-figure.num+1
+```
+Fig `r figure.num`. Bayesian posterior estimates of standardized variance in lifetime reproductive success and S3 of reproductive variance across male sea otters (E. lutris), southern elephant seals (M. leonina), and Pacific harbor seals (P. vitulina). Standardized variance in LRS is given by the variance/mean2 reproductive success for all sampled males. S3 ranges from 0, when the proportional contribution of pups by each male is equal, to 1, when one male contributes all pups. Points denote the mean values and error bars show the 95% confidence intervals.
+
+```{r, echo=FALSE}
+knitr::include_graphics(path=str_c(folder, "Figures/sample_size_indices_plot.tiff"))
+figure.num<-figure.num+1
+```
+Fig `r figure.num`. Effect of estimated male population size on calculated reproductive variance (mean and 95% CI) in sea otters. Male population size is provided as an input to the Bayesian model and used to calculate the proportion of the male population that was sampled for paternity analyses. Across the range of values tested, changes in the input population size had negligible effects on Bayesian estimates of reproductive variance, suggesting that the model is robust to uncertainty in population estimates for sea otters.

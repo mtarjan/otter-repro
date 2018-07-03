@@ -103,7 +103,7 @@ for (j in 1:nrow(obs)) {
 maleyrsmean<-3
 
 ##OVERWRITE MALEYRS WITH MEAN REPRO LIFETIME
-maleyrs<-rep(maleyrsmean, length(maleyrs))
+#maleyrs<-rep(maleyrsmean, length(maleyrs))
 
 ##M = matrix of line numbers of males matrix that are active each year; columns are years
 M<-matrix(nrow=nrow(obs), ncol=ncol(obs))
@@ -610,15 +610,18 @@ lines(x = x.temp[[j]], y = Tsiresdist_m[[j]], col=color[j], lwd=2)
 dev.off()
 
 ##PLOT SKEW INDICES AS MEDIAN WITH CI
-skew.summary<-data.frame(species=c("E. lutris", "M. leonina", "P. vitulina"), index= c(rep("S1", 3), rep("S2", 3)), q50=c(model.so$q50$S1, model.es$q50$S1, model.hs$q50$S1, model.so$q50$S2, model.es$q50$S2, model.hs$q50$S2), q2.5=c(model.so$q2.5$S1, model.es$q2.5$S1, model.hs$q2.5$S1, model.so$q2.5$S2, model.es$q2.5$S2, model.hs$q2.5$S2), q97.5=c(model.so$q97.5$S1, model.es$q97.5$S1, model.hs$q97.5$S1, model.so$q97.5$S2, model.es$q97.5$S2, model.hs$q97.5$S2))
+skew.summary<-data.frame(species=c("E. lutris", "M. leonina", "P. vitulina"), index= c(rep("S1", 3), rep("S2", 3)), mean=c(model.so$mean$S1, model.es$mean$S1, model.hs$mean$S1, model.so$mean$S2, model.es$mean$S2, model.hs$mean$S2), q50=c(model.so$q50$S1, model.es$q50$S1, model.hs$q50$S1, model.so$q50$S2, model.es$q50$S2, model.hs$q50$S2), q2.5=c(model.so$q2.5$S1, model.es$q2.5$S1, model.hs$q2.5$S1, model.so$q2.5$S2, model.es$q2.5$S2, model.hs$q2.5$S2), q97.5=c(model.so$q97.5$S1, model.es$q97.5$S1, model.hs$q97.5$S1, model.so$q97.5$S2, model.es$q97.5$S2, model.hs$q97.5$S2))
 
-plot1<-ggplot(data=subset(skew.summary, index=="S1"), aes(species, q50)) + geom_point(size=4) + geom_errorbar(aes(ymin=q2.5, ymax=q97.5), width=0.1) + theme(panel.grid.minor=element_blank(), panel.grid.major=element_blank(), panel.background=element_blank(), axis.line=element_line(colour="black"), axis.ticks=element_line(colour="black"), axis.text=element_text(colour="black"), axis.text.x=element_text(size=12), axis.text.y=element_text(size=12), axis.title.x=element_text(vjust=0.4, size=14), axis.title.y=element_text(vjust=0.4, size=12)) +xlab("") +ylab("Standardized variance in LRS")
+plot1 <- ggplot(data=subset(skew.summary, index=="S1"), aes(species, mean)) 
+plot1 <-  plot1 + geom_point(size=4) + geom_errorbar(aes(ymin=q2.5, ymax=q97.5), width=0.1) 
+plot1 <- plot1 + theme(panel.grid.minor=element_blank(), panel.grid.major=element_blank(), panel.background=element_blank(), axis.line=element_line(colour="black"), axis.ticks=element_line(colour="black"), axis.text=element_text(colour="black"), axis.text.x=element_text(size=12), axis.text.y=element_text(size=12), axis.title.x=element_text(vjust=0.4, size=14), axis.title.y=element_text(vjust=0.4, size=12)) 
+plot1 <- plot1 + xlab("") +ylab("Standardized variance in LRS")
 plot1 <- plot1 + theme(axis.title.y = element_text(vjust=1)) ##move y axis title away from axis
 plot1 <- plot1 + scale_y_continuous(breaks=seq(0,15,2)) ##add more breaks in y axis
 plot1 <- plot1 + theme(axis.text.x = element_text(angle = 45, vjust = 1, face = "italic", hjust=1)) ##rotate x axis labels
 plot1
 
-plot2<-ggplot(data=subset(skew.summary, index=="S2"), aes(species, q50)) + geom_point(size=4) + geom_errorbar(aes(ymin=q2.5, ymax=q97.5), width=0.1) + theme(panel.grid.minor=element_blank(), panel.grid.major=element_blank(), panel.background=element_blank(), axis.line=element_line(colour="black"), axis.ticks=element_line(colour="black"), axis.text=element_text(colour="black"), axis.text.x=element_text(size=12), axis.text.y=element_text(size=12), axis.title.x=element_text(vjust=0.4, size=14), axis.title.y=element_text(vjust=0.4, size=12)) +xlab("") 
+plot2<-ggplot(data=subset(skew.summary, index=="S2"), aes(species, mean)) + geom_point(size=4) + geom_errorbar(aes(ymin=q2.5, ymax=q97.5), width=0.1) + theme(panel.grid.minor=element_blank(), panel.grid.major=element_blank(), panel.background=element_blank(), axis.line=element_line(colour="black"), axis.ticks=element_line(colour="black"), axis.text=element_text(colour="black"), axis.text.x=element_text(size=12), axis.text.y=element_text(size=12), axis.title.x=element_text(vjust=0.4, size=14), axis.title.y=element_text(vjust=0.4, size=12)) +xlab("") 
 plot2 <- plot2 + ylab(expression(italic(S[3])~ "of repro. variance"))
 plot2 <- plot2 + theme(axis.title.y = element_text(vjust=1.1)) ##move y axis title away from axis
 plot2 <- plot2 + scale_y_continuous(breaks=seq(0,1, 0.1), limits=c(0,1)) ##add more breaks in y axis
@@ -686,13 +689,13 @@ for (j in 1:length(per.change)) {
   model <- jags(data = Bayes.in, parameters.to.save = var.names, model.file = "Reproskew_JAGS.txt", n.chains = nchains, n.iter = nsamps, n.burnin = burnin)
   
   ##NEED TO SAVE EACH VERSION OF THE MODEL
-  out<-rbind(out, c(per.change[j], mean(Bayes.in$propdad), model$q50$S1, model$q2.5$S1, model$q97.5$S1, model$q50$S2, model$q2.5$S2, model$q97.5$S2))
+  out<-rbind(out, c(per.change[j], mean(Bayes.in$propdad), model$mean$S1, model$q50$S1, model$q2.5$S1, model$q97.5$S1, model$mean$S2, model$q50$S2, model$q2.5$S2, model$q97.5$S2))
   #out[[j]]<-model
 }
-out<-data.frame(out); colnames(out)<- c("per.change", "mean.prop", "S1q50", "S1q2.5", "S1q97.5", "S2q50", "S2q2.5", "S2q97.5")
+out<-data.frame(out); colnames(out)<- c("per.change", "mean.prop", "S1mean", "S1q50", "S1q2.5", "S1q97.5", "S2mean", "S2q50", "S2q2.5", "S2q97.5")
 
 ##plot estimate in variance as a function of percent change
-plot1 <- ggplot(data=out, aes(mean.prop, S1q50)) 
+plot1 <- ggplot(data=out, aes(mean.prop, S1mean)) 
 plot1 <- plot1 + geom_point(size=4) + geom_errorbar(aes(ymin=S1q2.5, ymax=S1q97.5), width=0.01) 
 plot1 <- plot1 + theme(panel.grid.minor=element_blank(), panel.grid.major=element_blank(), panel.background=element_blank(), axis.line=element_line(colour="black"), axis.ticks=element_line(colour="black"), axis.text=element_text(colour="black"), axis.text.x=element_text(size=12), axis.text.y=element_text(size=12), axis.title.x=element_text(vjust=0.4, size=12), axis.title.y=element_text(vjust=0.4, size=12)) 
 plot1 <- plot1 + xlab("Estimated prop. of males sampled") +ylab("Standardized variance in LRS")
@@ -702,7 +705,7 @@ plot1 <- plot1 + theme(axis.text.x = element_text(vjust = 1)) ##rotate x axis la
 plot1 <- plot1 + scale_x_continuous(breaks = seq(0,1,0.1))
 plot1
 
-plot2 <- ggplot(data=out, aes(mean.prop, S2q50)) 
+plot2 <- ggplot(data=out, aes(mean.prop, S2mean)) 
 plot2 <- plot2 + geom_point(size=4) + geom_errorbar(aes(ymin=S2q2.5, ymax=S2q97.5), width=0.01) 
 plot2 <- plot2 + theme(panel.grid.minor=element_blank(), panel.grid.major=element_blank(), panel.background=element_blank(), axis.line=element_line(colour="black"), axis.ticks=element_line(colour="black"), axis.text=element_text(colour="black"), axis.text.x=element_text(size=12), axis.text.y=element_text(size=12), axis.title.x=element_text(vjust=0.4, size=12), axis.title.y=element_text(vjust=0.4, size=12)) 
 plot2 <- plot2 + xlab("Estimated prop. of males sampled") + ylab(expression(italic(S[3])~ "of repro. variance"))
