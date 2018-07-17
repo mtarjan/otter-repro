@@ -41,3 +41,47 @@ knitr::include_graphics(path=str_c(folder, "Figures/sample_size_indices_plot.tif
 figure.num<-figure.num+1
 ```
 Fig `r figure.num`. Effect of estimated male population size on calculated reproductive variance (mean and 95% CI) in sea otters. Male population size is provided as an input to the Bayesian model and used to calculate the proportion of the male population that was sampled for paternity analyses. Across the range of values tested, changes in the input population size had negligible effects on Bayesian estimates of reproductive variance, suggesting that the model is robust to uncertainty in population estimates for sea otters.
+
+#Appendix I
+Table of parentage assignments from CERVUS and Franz.
+```{r, echo=FALSE}
+library(dplyr); library(tidyr)
+pc<-read.csv(str_c(folder, "parentage_CERVUS.csv"), row.names = NULL, header=T)
+ped.f<-read.table(str_c(folder, "pedigree_Franz.txt"), header=T)
+pf<-read.csv(str_c(folder, "parentage_Franz.csv"), row.names= NULL, header =T)
+pf$Parent.1<-as.character(pf$Parent.1); pf$Parent.2<-as.character(pf$Parent.2)
+ped.f2<-dplyr::left_join(x = ped.f, y = subset(pf, select=c(Offspring, Parent.1, Pair.LOD.Parent.1)), by = c("ID"="Offspring", "SIRE"="Parent.1")) 
+colnames(ped.f2)<-c("Offspring.ID", "Franz.Candidate.father.ID", "Franz.Candidate.mother.ID", "Franz.Father.LOD")
+ped.f3<-dplyr::left_join(x = ped.f2, y = subset(pf, select=c(Offspring, Parent.1, Pair.LOD.Parent.1)), by = c("Offspring.ID"="Offspring", "Franz.Candidate.mother.ID"="Parent.1"))
+colnames(ped.f3)<-c(colnames(ped.f3)[1:4], "Franz.Mother.LOD")
+ped.f4<-dplyr::left_join(x = ped.f3, y = subset(pf, select=c(Offspring, Parent.2, Pair.LOD.Parent.2)), by = c("Offspring.ID"="Offspring", "Franz.Candidate.father.ID"="Parent.2")) ##get lod for fathers listed as "parent 2"
+ped.f5<-dplyr::left_join(x = ped.f4, y = subset(pf, select=c(Offspring, Parent.2, Pair.LOD.Parent.2)), by = c("Offspring.ID"="Offspring", "Franz.Candidate.mother.ID"="Parent.2")) ##get lod for mothers listed as "parent 2"
+##combine lod scores to make one column for mothers and one for fathers
+ped.f5$Franz.Father.LOD[which(is.na(ped.f5$Franz.Father.LOD))]<-ped.f5$Pair.LOD.Parent.2.x[which(is.na(ped.f5$Franz.Father.LOD))]
+ped.f5$Franz.Mother.LOD[which(is.na(ped.f5$Franz.Mother.LOD))]<-ped.f5$Pair.LOD.Parent.2.y[which(is.na(ped.f5$Franz.Mother.LOD))]
+pf<-subset(ped.f5, select=c(Offspring.ID, Franz.Candidate.mother.ID, Franz.Mother.LOD, Franz.Candidate.father.ID, Franz.Father.LOD))
+pf$Franz.Candidate.mother.ID[which(pf$Franz.Candidate.mother.ID=="*")]<-""
+pf$Franz.Candidate.father.ID[which(pf$Franz.Candidate.father.ID=="*")]<-""
+pf[is.na(pf)]<-""
+
+pc$Mother.LOD<-str_c(pc$Pair.LOD.score, pc$Pair.confidence); pc$Father.LOD<-str_c(pc$Pair.LOD.score.1, pc$Pair.confidence.1)
+pc<-subset(pc, select=c(Offspring.ID, Candidate.mother.ID, Mother.LOD, Candidate.father.ID, Father.LOD))
+##make ID na if not significant assignment
+pc[which(str_detect(pc$Mother.LOD, pattern = "\\*")==F & str_detect(pc$Mother.LOD, pattern = "\\+")==F),2:3]<-""
+pc[which(str_detect(pc$Father.LOD, pattern = "\\*")==F & str_detect(pc$Father.LOD, pattern = "\\+")==F),4:5]<-""
+##combine the two tables
+pcf<-dplyr::left_join(x = pc, y = pf, by= c("Offspring.ID"="Offspring.ID"))
+pcf.sub<-subset(pcf, str_detect(string=pcf$Mother.LOD, pattern = "\\*") | str_detect(pcf$Mother.LOD, "\\+") | str_detect(pcf$Father.LOD, "\\*") | str_detect(pcf$Father.LOD, "\\+") | Franz.Candidate.mother.ID!="" | Franz.Candidate.father.ID!="")
+pcf1<-pcf.sub[,1:5]; pcf1$Progam<-"CERVUS"
+pcf2<-pcf.sub[,c(1,6:9)]; pcf2$Program<-"Franz"; colnames(pcf2)<-colnames(pcf1)
+pcf.g<-rbind(pcf1, pcf2)
+pcf.g<-pcf.g[order(pcf.g$Offspring.ID),c(1,6,2:5)]
+pcf.g$Offspring.ID[which(pcf.g$Progam=="Franz")]<-""
+colnames(pcf.g)<-c("Pup ID", "Program","Candidate mother ID", "Mother LOD", "Candidate father ID", "Father LOD")
+
+
+#write.csv(pcf.g, "AppendixI.csv", row.names = F)
+
+knitr::kable(pcf.sub)
+```
+
