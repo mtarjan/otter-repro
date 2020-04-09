@@ -658,6 +658,20 @@ print('harbor seal index 2'); model.hs$q50$S2; model.hs$q2.5$S2; model.hs$q97.5$
 print('beta mean sd'); mean(model.so$sims.list$bta); sd(model.so$sims.list$bta)
 
 ##TEST EFFECT OF DIFFERENT POPULATION SIZE
+##create simulated dataset of males and pups with know values of skew. then randomly subsample males and pups to see skew output with multiple levels of incomplete sampling
+##assume 100 males with 200 pups
+sim.males<-c(1:100) ##simulated male ids
+sim.pat<-data.frame(pup=c(1:200), year=rep(1:10, 20), male=sample(x = 1:100, size = 200, replace = T)) ##200 pups born across ten years, 100 males randomly assigned to each pup
+sim.assign<-data.frame(table(sim.assign$male)); colnames(sim.assign)<-c("male", "n.pup")
+
+hist(sim.assign$n.pup, xlab = "Number of pups sired", main=NA) ##histogram of male repro success (number of pups sired)
+##true skew
+##svlrs = variance in lrs / squared mean lrs
+##variance = sum_all(value - mean)^2 / (n-1)
+svlrs<-sum((sim.assign$n.pup-mean(sim.assign$n.pup))^2)/(nrow(sim.assign)-1) ##standardized variance in lifetime reproductive success
+##s3 = by (n-1/∑p_i^2 )/(n-1), where n is the number of males sampled and pi is the proportional contribution of the ith male to the total number of known siring events
+s3<- ##effective number s
+
 ##AUTOMATED version with multiple percent changes
 per.change<-c(-50, -40, -30, -20, -10, 0, 10, 20, 30, 40, 50)
 
