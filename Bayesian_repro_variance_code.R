@@ -658,20 +658,77 @@ print('harbor seal index 2'); model.hs$q50$S2; model.hs$q2.5$S2; model.hs$q97.5$
 print('beta mean sd'); mean(model.so$sims.list$bta); sd(model.so$sims.list$bta)
 
 ##TEST EFFECT OF DIFFERENT POPULATION SIZE
+##TEST EFFECT OF SAMPLE SIZE USING SIMULATED DATA
 ##create simulated dataset of males and pups with know values of skew. then randomly subsample males and pups to see skew output with multiple levels of incomplete sampling
 ##assume 100 males with 200 pups
+##assume ten years of study and that all males were active in all years and started siring in the same year (no time component to simulation)
 sim.males<-c(1:100) ##simulated male ids
-sim.pat<-data.frame(pup=c(1:200), year=rep(1:10, 20), male=sample(x = 1:100, size = 200, replace = T)) ##200 pups born across ten years, 100 males randomly assigned to each pup
-sim.assign<-data.frame(table(sim.assign$male)); colnames(sim.assign)<-c("male", "n.pup")
+sim.pups<-c(1:200)
+sim.pat<-data.frame(pup=sim.pups, year=rep(1:10, 20), male=sample(x = sim.males, size = length(sim.pups), prob = seq(0.01,1,1/100), replace = T)) ##200 pups born across ten years, 100 males randomly assigned to each pup. males are weighted based on different probabilities of siring (weights = 0.01 to 1)
+sim.assign<-data.frame(table(sim.pat$male)); colnames(sim.assign)<-c("male", "n.pup")
 
 hist(sim.assign$n.pup, xlab = "Number of pups sired", main=NA) ##histogram of male repro success (number of pups sired)
 ##true skew
 ##svlrs = variance in lrs / squared mean lrs
 ##variance = sum_all(value - mean)^2 / (n-1)
-svlrs<-sum((sim.assign$n.pup-mean(sim.assign$n.pup))^2)/(nrow(sim.assign)-1) ##standardized variance in lifetime reproductive success
+svlrs<-sum((sim.assign$n.pup-mean(sim.assign$n.pup))^2)/(nrow(sim.assign)-1); svlrs ##standardized variance in lifetime reproductive success
 ##s3 = by (n-1/∑p_i^2 )/(n-1), where n is the number of males sampled and pi is the proportional contribution of the ith male to the total number of known siring events
-s3<- ##effective number s
+s3<-(nrow(sim.assign)-1/sum(sim.assign$n.pup/sum(sim.assign$n.pup^2)))/(nrow(sim.assign)-1); s3 ##effective number s
 
+##percent of population sampled
+sim.per<-c(.10,.20,.30,.40,.50,.60,.70,.80,.90)
+sim.out<-dim(0)
+for (j in c("per.male", "per.pup")) { ##for either a given percent of pups or males
+  for (i in 1:length(sim.per)) { ##for each sample percent
+    ##subset the dataset for that level of sampling; assume that all of the other "type" are sampled (i.e. if you sample 10% pups assume sampled 100% males and vice versa)
+    if (j=="per.male") {
+      sim.pat.test<-subset(sim.pat, male %in% sample(x=sim.males, size=sim.per[i]*length(sim.males), replace=F)) ##randomly sample i percent of males
+    }
+    if (j=="per.pup") {
+      sim.pat.test<-subset(sim.pat, pup %in% sample(x=sim.pups, size=sim.per[i]*length(sim.pups), replace=F))
+    }
+    
+    ##convert simulated paternity assignments into bayesian inputs
+    ##terms needed for model
+    ##(nmales, Nyrs, scalefact, Sires, proppup, propdad, Npuptot, obs, Nm, M, maleyrs, pi)
+    ##nmales = value. number of potential fathers that were sampled
+    ##Nyrs == value. number of years
+    ##scalefact = proportion of "accounted for" males. Tim set this to 0.9 ##saying estimate of pop might be 10% above estimate
+    ##Sires: vector of length year- number of males that were assigned a pup in each year??
+    ##proppup & propdad: prop pup and prop dad by year (each a vector of length = number of years)
+    ##Npuptot: total number of pups by year (vector)
+    ##Npupsamp: number of pups sampled each year?
+    ##obs: matrix- sampled males and years they were active (Males matrix). rows = number of males; columns = number of years. number of pups assigned or -1 if male not active
+    ##Nm ==vector of length years ##number of males active each year
+    ##M = matrix of line numbers of males matrix that are active each year ##indexing the rows of obs for males that are active ##0s when not full. each column is a year
+    ##maleyrs = vector with length number of males (number of years that male was active)
+    ##pi ##not in model
+    ##maleyrsmean = mean number of years that a male of this species is reproductively active (ie alive to reproduce), given that he has already reached reproductive maturity (age 5, maybe 4...still deciding)
+    Bayes.in<-list()
+    Bayes.in$nmales<-ifelse(j=="per.male", sim.per[i]*length(sim.males), length(sim.males))
+    Bayes.in$Nyrs<-10 ##assume ten years of study
+    #Bayes.in$scalefact<-0.9
+    Sires<-sim.pat.test %>% group_by(year) %>% summarize(n.assign=length(unique(male))) %>% data.frame() %>% subset(select=n.assign)
+    Bayes.in$Sires<-Sires$n.assign
+    Bayes.in$proppup<-ifelse(j =="per.male", 1, sim.per[i])
+    Bayes.in$propdad<-ifelse(j =="per.male", sim.per[i], 1)
+    #Bayes.in$Npuptot<-Npuptot
+    Npupsamp<-sim.pat.test %>% group_by(year) %>% summarize(n.samp=length(unique(pup))) %>% data.frame() %>% subset(select=n.samp)
+    Bayes.in$Npupsamp<-Npupsamp$n.samp
+    Bayes.in$obs<-obs
+    Bayes.in$Nm<-rep(Bayes.in$nmales, Bayes.in$Nyrs)##assume all active males active every year
+    Bayes.in$M<-M
+    Bayes.in$maleyrs<-rep(10, Bayes.in$nmales) ##assume all males active for 10 years
+    
+    ##run the bayesian model and get the estimates of svlrs and s3
+    
+    ##save the outputs
+    sim.out<-rbind(sim.out, c(j, sim.per[i], model$mean$S1, model$q50$S1, model$q2.5$S1, model$q97.5$S1, model$mean$S2, model$q50$S2, model$q2.5$S2, model$q97.5$S2))
+  }
+}
+sim.out<-data.frame(sim.out); colnames(sim.out)<- c("type","per", "S1mean", "S1q50", "S1q2.5", "S1q97.5", "S2mean", "S2q50", "S2q2.5", "S2q97.5")
+
+##TEST EFFECT OF SAMPLE SIZE USING SEA OTTER DATA
 ##AUTOMATED version with multiple percent changes
 per.change<-c(-50, -40, -30, -20, -10, 0, 10, 20, 30, 40, 50)
 
