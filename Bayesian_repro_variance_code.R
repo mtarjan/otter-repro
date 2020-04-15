@@ -8,6 +8,7 @@ library(gridExtra) ##required for grid.arrange
 library(ggplot2)
 library(dplyr)
 library(stringr)
+library(jagsUI) ##required for jags function
 
 ##PREP DATA
 ##folder with data files
@@ -138,7 +139,6 @@ for (j in 1:length(Bayes.in)) {
 ##BAYESIAN MODEL
 ##SEA OTTER BAYESIAN MODEL
 #library(rjags)
-library(jagsUI) ##required for jags function
 #var.names<-c('S1', 'S2', 'mu', 'sig', 'bta1', 'bta2', 'TSires')
 var.names<-c('S1', 'S2', 'mu', 'sig', 'bta', 'TSires')
 burnin<-10000
@@ -710,17 +710,24 @@ for (j in c("per.male", "per.pup")) { ##for either a given percent of pups or ma
     Bayes.in$nmales<-ifelse(j=="per.male", sim.per[i]*length(sim.males), length(sim.males))
     Bayes.in$Nyrs<-10 ##assume ten years of study
     #Bayes.in$scalefact<-0.9
-    Sires<-sim.pat.test %>% group_by(year) %>% summarize(n.assign=length(unique(male))) %>% data.frame() %>% subset(select=n.assign)
+    Sires<-sim.pat.test %>% group_by(year) %>% summarize(n.assign=length(unique(male))) %>% data.frame()
+    ##add years when there were no pups sired
+    for (k in 1:Bayes.in$Nyrs) {if (length(which(Sires$year==k))==0) {Sires<-rbind(Sires, c(k, 0))}}
     Bayes.in$Sires<-Sires$n.assign
     Bayes.in$proppup<-if(j =="per.male"){rep(1, Bayes.in$Nyrs)} else{rep(sim.per[i], Bayes.in$Nyrs)}
     Bayes.in$propdad<-if(j =="per.male") {rep(sim.per[i], Bayes.in$Nyrs)} else {rep(1, Bayes.in$Nyrs)}
     #Bayes.in$Npuptot<-Npuptot
-    Npupsamp<-sim.pat.test %>% group_by(year) %>% summarize(n.samp=length(unique(pup))) %>% data.frame() %>% subset(select=n.samp)
+    ##need to update this for pup.per
+    if (j=="per.male") {Npupsamp<-sim.pat %>% group_by(year) %>% summarize(n.samp=length(unique(pup))) %>% data.frame() %>% subset(select=n.samp)} else {Npupsamp<-data.frame(year = 1:Bayes.in$Nyrs); Npupsamp$n.samp<-apply(X = Npupsamp, MARGIN = 1, FUN = length(which(sim.pat.test$year==Npupsamp$year)))}
+    ##add years with 0 pups sampled
     Bayes.in$Npupsamp<-Npupsamp$n.samp
-    ##obs: matrix- sampled males and years they were active (Males matrix). rows = number of males; columns = number of years. number of pups assigned or -1 if male not active. NEED TO ADD MALES FROM MALES.TEST THAT SIRED 0 PUPS
-    obs<-table(sim.pat.test$male, sim.pat.test$year) %>% as.data.frame.matrix()
+    ##obs: matrix- sampled males and years they were active (Males matrix). rows = number of males; columns = number of years. number of pups assigned or -1 if male not active. 
+    ##NEED TO ADD YEARS WITH NO PUPS
+    if (j == "male.per") {obs<-table(sim.pat.test$male, sim.pat.test$year) %>% as.data.frame.matrix()} else {obs<-table(sim.pat$male, sim.pat$year) %>% as.data.frame.matrix()}
     ##add males with no pups assigned
     for (k in 1:(Bayes.in$nmales-length(unique(sim.pat.test$male)))) {obs<-rbind(obs, rep(0, Bayes.in$Nyrs))}
+    ##add years with no pups
+    #for (k in 1:Bayes.in$Nyrs) {if (length(which(sim.pat.test$year==k))==0) {obs<-cbind(obs, rep(0,nrow(obs)))}}
     Bayes.in$obs<-obs
     Bayes.in$Nm<-rep(Bayes.in$nmales, Bayes.in$Nyrs)##assume all active males active every year
     ##M = matrix of line numbers of males matrix that are active each year ##indexing the rows of obs for males that are active ##0s when not full. each column is a year
