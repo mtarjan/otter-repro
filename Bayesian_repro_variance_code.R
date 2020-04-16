@@ -717,6 +717,7 @@ for (j in c("per.male", "per.pup")) { ##for either a given percent of pups or ma
     ##reorder
     Sires<-Sires[order(Sires$year),]
     Bayes.in$Sires<-Sires$n.assign
+    ##UPDATE PROPORTION SAMPLED BASED ON KNOWN NUMBER TO START? SAMPLED RANDOMLY SO NOT EQUAL ACROSS YEARS
     Bayes.in$proppup<-if(j =="per.male"){rep(1, Bayes.in$Nyrs)} else{rep(sim.per[i], Bayes.in$Nyrs)}
     Bayes.in$propdad<-if(j =="per.male") {rep(sim.per[i], Bayes.in$Nyrs)} else {rep(1, Bayes.in$Nyrs)}
     #Bayes.in$Npuptot<-Npuptot
