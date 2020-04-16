@@ -687,6 +687,7 @@ for (j in c("per.male", "per.pup")) { ##for either a given percent of pups or ma
       sim.pat.test<-subset(sim.pat, male %in% males.test) ##randomly sample i percent of males
     }
     if (j=="per.pup") {
+      males.test<-sim.males
       sim.pat.test<-subset(sim.pat, pup %in% sample(x=sim.pups, size=sim.per[i]*length(sim.pups), replace=F))
     }
     
@@ -713,21 +714,21 @@ for (j in c("per.male", "per.pup")) { ##for either a given percent of pups or ma
     Sires<-sim.pat.test %>% group_by(year) %>% summarize(n.assign=length(unique(male))) %>% data.frame()
     ##add years when there were no pups sired
     for (k in 1:Bayes.in$Nyrs) {if (length(which(Sires$year==k))==0) {Sires<-rbind(Sires, c(k, 0))}}
+    ##reorder
+    Sires<-Sires[order(Sires$year),]
     Bayes.in$Sires<-Sires$n.assign
     Bayes.in$proppup<-if(j =="per.male"){rep(1, Bayes.in$Nyrs)} else{rep(sim.per[i], Bayes.in$Nyrs)}
     Bayes.in$propdad<-if(j =="per.male") {rep(sim.per[i], Bayes.in$Nyrs)} else {rep(1, Bayes.in$Nyrs)}
     #Bayes.in$Npuptot<-Npuptot
-    ##need to update this for pup.per
-    if (j=="per.male") {Npupsamp<-sim.pat %>% group_by(year) %>% summarize(n.samp=length(unique(pup))) %>% data.frame() %>% subset(select=n.samp)} else {Npupsamp<-data.frame(year = 1:Bayes.in$Nyrs); Npupsamp$n.samp<-apply(X = Npupsamp, MARGIN = 1, FUN = length(which(sim.pat.test$year==Npupsamp$year)))}
-    ##add years with 0 pups sampled
+    if (j=="per.male") {Npupsamp<-sim.pat %>% group_by(year) %>% summarize(n.samp=length(unique(pup))) %>% data.frame() %>% subset(select=n.samp)} else {Npupsamp<-data.frame(year = 1:Bayes.in$Nyrs, n.samp=NA); for (k in Npupsamp$year) {Npupsamp$n.samp[k]<-length(which(sim.pat.test$year==k))}}
     Bayes.in$Npupsamp<-Npupsamp$n.samp
-    ##obs: matrix- sampled males and years they were active (Males matrix). rows = number of males; columns = number of years. number of pups assigned or -1 if male not active. 
-    ##NEED TO ADD YEARS WITH NO PUPS
-    if (j == "male.per") {obs<-table(sim.pat.test$male, sim.pat.test$year) %>% as.data.frame.matrix()} else {obs<-table(sim.pat$male, sim.pat$year) %>% as.data.frame.matrix()}
-    ##add males with no pups assigned
-    for (k in 1:(Bayes.in$nmales-length(unique(sim.pat.test$male)))) {obs<-rbind(obs, rep(0, Bayes.in$Nyrs))}
-    ##add years with no pups
-    #for (k in 1:Bayes.in$Nyrs) {if (length(which(sim.pat.test$year==k))==0) {obs<-cbind(obs, rep(0,nrow(obs)))}}
+    ##obs: matrix- sampled males and years they were active (Males matrix). rows = number of males; columns = number of years. number of pups assigned or -1 if male not active.
+    obs<-matrix(NA,nrow=length(males.test), ncol=Bayes.in$Nyrs)
+    for (y in 1:Bayes.in$Nyrs) {
+      for (m in 1:length(males.test)) {
+        obs[m,y]<-length(which(sim.pat.test$male==males.test[m] & sim.pat.test$year==y))
+      }
+    }
     Bayes.in$obs<-obs
     Bayes.in$Nm<-rep(Bayes.in$nmales, Bayes.in$Nyrs)##assume all active males active every year
     ##M = matrix of line numbers of males matrix that are active each year ##indexing the rows of obs for males that are active ##0s when not full. each column is a year
