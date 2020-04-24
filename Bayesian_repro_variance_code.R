@@ -12,7 +12,7 @@ library(jagsUI) ##required for jags function
 
 ##PREP DATA
 ##folder with data files
-folder<-"C:/Users/max/Desktop/Tarjan/otter data/"
+folder<-"C:/Users/max/Desktop/Tarjan/SSO_research/otter data/"
 
 ##PREP SEA OTTER DATA
 ##create list of potential sampled males and matrix for years they were active
@@ -663,10 +663,10 @@ print('beta mean sd'); mean(model.so$sims.list$bta); sd(model.so$sims.list$bta)
 ##create simulated dataset of males and pups with know values of skew. then randomly subsample males and pups to see skew output with multiple levels of incomplete sampling
 ##assume 100 males with 200 pups
 ##assume ten years of study and that all males were active in all years and started siring in the same year (no time component to simulation)
-sim.males<-c(1:100) ##simulated male ids
-sim.pups<-c(1:200)
-sim.pat<-data.frame(pup=sim.pups, year=rep(1:10, 20), male=sample(x = sim.males, size = length(sim.pups), prob = seq(0.01,1,1/100), replace = T)) ##200 pups born across ten years, 100 males randomly assigned to each pup. males are weighted based on different probabilities of siring (weights = 0.01 to 1)
-sim.assign<-data.frame(table(sim.pat$male)); colnames(sim.assign)<-c("male", "n.pup")
+sim.males<-c(1:1000) ##simulated male ids
+sim.pups<-c(1:2000)
+sim.pat<-data.frame(pup=sim.pups, year=rep(1:10, length(sim.pups)/10), male=sample(x = sim.males, size = length(sim.pups), prob = seq(1/length(sim.males),1,1/length(sim.males)), replace = T)) ##200 pups born across ten years, 100 males randomly assigned to each pup. males are weighted based on different probabilities of siring (weights = 0.01 to 1)
+sim.assign<-data.frame(male=sim.males, n.pup=0); for (j in 1:nrow(sim.assign)) {sim.assign$n.pup[j]<-length(which(sim.pat$male==j))}
 
 hist(sim.assign$n.pup, xlab = "Number of pups sired", main=NA) ##histogram of male repro success (number of pups sired)
 ##true skew
@@ -677,7 +677,8 @@ svlrs<-sum((sim.assign$n.pup-mean(sim.assign$n.pup))^2)/(nrow(sim.assign)-1); sv
 s3<-(nrow(sim.assign)-1/sum(sim.assign$n.pup/sum(sim.assign$n.pup^2)))/(nrow(sim.assign)-1); s3 ##effective number s
 
 ##percent of population sampled
-sim.per<-c(.10,.20,.30,.40,.50,.60,.70,.80,.90)
+#sim.per<-c(.10,.20,.30,.40,.50,.60,.70,.80,.90)
+sim.per<-c(0.1, 0.3, 0.5, 0.7, 0.9, 1)
 sim.out<-dim(0)
 for (j in c("per.male", "per.pup")) { ##for either a given percent of pups or males
   for (i in 1:length(sim.per)) { ##for each sample percent
@@ -747,9 +748,17 @@ for (j in c("per.male", "per.pup")) { ##for either a given percent of pups or ma
     
     ##save the outputs
     sim.out<-rbind(sim.out, c(j, sim.per[i], model$mean$S1, model$q50$S1, model$q2.5$S1, model$q97.5$S1, model$mean$S2, model$q50$S2, model$q2.5$S2, model$q97.5$S2))
+    
+    ##write output to file
+    write.csv(sim.out, "sim.out.csv", row.names = F)
   }
 }
+
+sim.out<-rbind(read.csv("sim.out.17Apr2020.csv"), read.csv("sim.out.csv")) ##if run the percent levels in chunks then read all results into one dataframe
+
 sim.out<-data.frame(sim.out); colnames(sim.out)<- c("type","per", "S1mean", "S1q50", "S1q2.5", "S1q97.5", "S2mean", "S2q50", "S2q2.5", "S2q97.5")
+
+out<-sim.out
 
 ##TEST EFFECT OF SAMPLE SIZE USING SEA OTTER DATA
 ##AUTOMATED version with multiple percent changes
@@ -786,27 +795,30 @@ sim.out<-data.frame(sim.out); colnames(sim.out)<- c("type","per", "S1mean", "S1q
 #  out<-rbind(out, c(per.change[j], mean(Bayes.in$propdad), model$mean$S1, model$q50$S1, model$q2.5$S1, model$q97.5$S1, model$mean$S2, model$q50$S2, model$q2.5$S2, model$q97.5$S2))
   #out[[j]]<-model
 #}
-out<-data.frame(out); colnames(out)<- c("per.change", "mean.prop", "S1mean", "S1q50", "S1q2.5", "S1q97.5", "S2mean", "S2q50", "S2q2.5", "S2q97.5")
+#out<-data.frame(out); colnames(out)<- c("per.change", "mean.prop", "S1mean", "S1q50", "S1q2.5", "S1q97.5", "S2mean", "S2q50", "S2q2.5", "S2q97.5")
 
 ##plot estimate in variance as a function of percent change
-plot1 <- ggplot(data=out, aes(mean.prop, S1mean)) 
+#plot1 <- ggplot(data=out, aes(mean.prop, S1mean)) ##code for sea otter dataset (rather than simulated data)
+plot1 <- ggplot(data=out, aes(per, S1mean, shape=type)) 
 plot1 <- plot1 + geom_point(size=4) + geom_errorbar(aes(ymin=S1q2.5, ymax=S1q97.5), width=0.01) 
 plot1 <- plot1 + theme(panel.grid.minor=element_blank(), panel.grid.major=element_blank(), panel.background=element_blank(), axis.line=element_line(colour="black"), axis.ticks=element_line(colour="black"), axis.text=element_text(colour="black"), axis.text.x=element_text(size=12), axis.text.y=element_text(size=12), axis.title.x=element_text(vjust=0.4, size=12), axis.title.y=element_text(vjust=0.4, size=12)) 
-plot1 <- plot1 + xlab("Estimated prop. of males sampled") +ylab("Standardized variance in LRS")
+plot1 <- plot1 + xlab("Estimated proportion of population sampled") +ylab("Standardized variance in LRS")
 plot1 <- plot1 + theme(axis.title.y = element_text(vjust=1)) ##move y axis title away from axis
-plot1 <- plot1 + scale_y_continuous(breaks=seq(0,20, 1)) ##add more breaks in y axis
+plot1 <- plot1 + scale_y_continuous(breaks=round(seq(0,max(out$S1q97.5), max(out$S1q97.5)/10),2)) ##add more breaks in y axis
 plot1 <- plot1 + theme(axis.text.x = element_text(vjust = 1)) ##rotate x axis labels
 plot1 <- plot1 + scale_x_continuous(breaks = seq(0,1,0.1))
+plot1 <- plot1 + scale_shape_discrete(name = "Population sampled", labels = c("Male", "Pup")) + theme(legend.key = element_rect(fill = NA, color = NA))
 plot1
 
-plot2 <- ggplot(data=out, aes(mean.prop, S2mean)) 
+plot2 <- ggplot(data=out, aes(per, S2mean, shape=type)) 
 plot2 <- plot2 + geom_point(size=4) + geom_errorbar(aes(ymin=S2q2.5, ymax=S2q97.5), width=0.01) 
 plot2 <- plot2 + theme(panel.grid.minor=element_blank(), panel.grid.major=element_blank(), panel.background=element_blank(), axis.line=element_line(colour="black"), axis.ticks=element_line(colour="black"), axis.text=element_text(colour="black"), axis.text.x=element_text(size=12), axis.text.y=element_text(size=12), axis.title.x=element_text(vjust=0.4, size=12), axis.title.y=element_text(vjust=0.4, size=12)) 
-plot2 <- plot2 + xlab("Estimated prop. of males sampled") + ylab(expression(italic(S[3])~ "of repro. variance"))
+plot2 <- plot2 + xlab("Estimated proportion of population sampled") + ylab(expression(italic(S[3])~ "of repro. variance"))
 plot2 <- plot2 + theme(axis.title.y = element_text(vjust=1)) ##move y axis title away from axis
 plot2 <- plot2 + scale_y_continuous(breaks=seq(0,1, 0.05)) ##add more breaks in y axis
 plot2 <- plot2 + theme(axis.text.x = element_text(vjust = 1)) ##rotate x axis labels
 plot2 <- plot2 + scale_x_continuous(breaks = seq(0,1,0.1))
+plot2 <- plot2 + scale_shape_discrete(name = "Population sampled", labels = c("Male", "Pup")) + theme(legend.key = element_rect(fill = NA, color = NA))
 plot2
 
 # Define grid layout to locate plots and print each graph
@@ -814,7 +826,7 @@ grid.arrange(plot1, plot2, ncol=2)
 
 
 ##SAVE PLOT
-tiff(str_c(folder, "Figures/sample_size_indices_plot.tiff"), family="Arial", height=3.5, width=7, units="in", compression="lzw", res=resolution, pointsize = 12)
-grid.arrange(plot1, plot2, ncol=2)
+tiff(str_c(folder, "Figures/sample_size_indices_plot.tiff"), family="Arial", height=7, width=7, units="in", compression="lzw", res=resolution, pointsize = 12)
+grid.arrange(plot1, plot2, ncol=1)
 dev.off()
 
