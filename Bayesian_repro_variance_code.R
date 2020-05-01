@@ -14,6 +14,8 @@ library(jagsUI) ##required for jags function
 ##folder with data files
 folder<-"C:/Users/max/Desktop/Tarjan/SSO_research/otter data/"
 
+resolution<-96
+
 ##PREP SEA OTTER DATA
 ##create list of potential sampled males and matrix for years they were active
 ##have ped.dat.y, info, and n.prop.samp
@@ -150,7 +152,6 @@ model <- jags(data = Bayes.in, parameters.to.save = var.names, model.file = "Rep
 model
 
 ##PLOTS
-resolution<-96
 
 #tiff("Figures_genetics/index1_plot.tiff", family="Arial", height=6.5, width=7, units="in", compression="lzw", res=resolution, pointsize = 14)
 plot(density(model$sims.list$S1), xlab='Index 1', col="black", lwd=2, main=""); 
@@ -666,7 +667,14 @@ print('beta mean sd'); mean(model.so$sims.list$bta); sd(model.so$sims.list$bta)
 sim.males<-c(1:1000) ##simulated male ids
 sim.pups<-c(1:2000)
 sim.pat<-data.frame(pup=sim.pups, year=rep(1:10, length(sim.pups)/10), male=sample(x = sim.males, size = length(sim.pups), prob = seq(1/length(sim.males),1,1/length(sim.males)), replace = T)) ##200 pups born across ten years, 100 males randomly assigned to each pup. males are weighted based on different probabilities of siring (weights = 0.01 to 1)
-sim.assign<-data.frame(male=sim.males, n.pup=0); for (j in 1:nrow(sim.assign)) {sim.assign$n.pup[j]<-length(which(sim.pat$male==j))}
+#write.csv(sim.pat, str_c(folder, "sim.pat.csv"), row.names=F)
+sim.pat<-read.csv(str_c(folder, "sim.pat.csv"))
+##subset sim.pat to 50% of males and 50% of pups (to represent those that were sampled)
+sim.pups.sub<-sample(x=sim.pups, size=length(sim.pups)/2, replace=F)
+sim.males.sub<-sample(x=sim.males, size=length(sim.males)/2, replace=F)
+sim.pat.sub<-subset(sim.pat, pup %in% sim.pups.sub & male %in% sim.males.sub) ##randomly select 50% of pups and 50% of males
+
+sim.assign<-data.frame(male=sim.males.sub, n.pup=0); for (j in 1:nrow(sim.assign)) {sim.assign$n.pup[j]<-length(which(sim.pat.sub$male==j))}
 
 hist(sim.assign$n.pup, xlab = "Number of pups sired", main=NA) ##histogram of male repro success (number of pups sired)
 ##true skew
@@ -676,21 +684,23 @@ svlrs<-sum((sim.assign$n.pup-mean(sim.assign$n.pup))^2)/(nrow(sim.assign)-1); sv
 ##s3 = by (n-1/∑p_i^2 )/(n-1), where n is the number of males sampled and pi is the proportional contribution of the ith male to the total number of known siring events
 s3<-(nrow(sim.assign)-1/sum(sim.assign$n.pup/sum(sim.assign$n.pup^2)))/(nrow(sim.assign)-1); s3 ##effective number s
 
+##CASE 1: ALTER PERCENT OF POPULATION SAMPLED (POPULATION ESTIMATE IS CONSTANT)
+##CASE 2: ALTER POPULATION ESTIMATE (BY A GIVEN PERCENT), WHILE KEEPING THE ANIMALS SAMPLED CONSTANT
 ##percent of population sampled
-#sim.per<-c(.10,.20,.30,.40,.50,.60,.70,.80,.90)
-sim.per<-c(0.1, 0.3, 0.5, 0.7, 0.9, 1)
+sim.per<-c(.10,.20,.30,.40,.50,.60,.70,.80,.90, 1) ##this now represents the percent of the population that we think we sampled, where .5 (50%) is the true value
 sim.out<-dim(0)
 for (j in c("per.male", "per.pup")) { ##for either a given percent of pups or males
   for (i in 1:length(sim.per)) { ##for each sample percent
+    ##CODE FOR CASE 1
     ##subset the dataset for that level of sampling; assume that all of the other "type" are sampled (i.e. if you sample 10% pups assume sampled 100% males and vice versa)
-    if (j=="per.male") {
-      males.test<-sample(x=sim.males, size=sim.per[i]*length(sim.males), replace=F)
-      sim.pat.test<-subset(sim.pat, male %in% males.test) ##randomly sample i percent of males
-    }
-    if (j=="per.pup") {
-      males.test<-sim.males
-      sim.pat.test<-subset(sim.pat, pup %in% sample(x=sim.pups, size=sim.per[i]*length(sim.pups), replace=F))
-    }
+    #if (j=="per.male") {
+     # males.test<-sample(x=sim.males, size=sim.per[i]*length(sim.males), replace=F)
+      #sim.pat.test<-subset(sim.pat, male %in% males.test) ##randomly sample i percent of males
+    #}
+    #if (j=="per.pup") {
+     # males.test<-sim.males
+    #  sim.pat.test<-subset(sim.pat, pup %in% sample(x=sim.pups, size=sim.per[i]*length(sim.pups), replace=F))
+    #}
     
     ##convert simulated paternity assignments into bayesian inputs
     ##terms needed for model
@@ -709,9 +719,11 @@ for (j in c("per.male", "per.pup")) { ##for either a given percent of pups or ma
     ##pi ##not in model
     ##maleyrsmean = mean number of years that a male of this species is reproductively active (ie alive to reproduce), given that he has already reached reproductive maturity (age 5, maybe 4...still deciding)
     Bayes.in<-list()
-    Bayes.in$nmales<-ifelse(j=="per.male", sim.per[i]*length(sim.males), length(sim.males))
+    #Bayes.in$nmales<-ifelse(j=="per.male", sim.per[i]*length(sim.males), length(sim.males)) ##CASE 1
+    Bayes.in$nmales<-length(sim.males.sub) ##CASE 2
     Bayes.in$Nyrs<-10 ##assume ten years of study
     #Bayes.in$scalefact<-0.9
+    ##CASE 1 (SIRES)
     Sires<-sim.pat.test %>% group_by(year) %>% summarize(n.assign=length(unique(male))) %>% data.frame()
     ##add years when there were no pups sired
     for (k in 1:Bayes.in$Nyrs) {if (length(which(Sires$year==k))==0) {Sires<-rbind(Sires, c(k, 0))}}
@@ -719,6 +731,8 @@ for (j in c("per.male", "per.pup")) { ##for either a given percent of pups or ma
     Sires<-Sires[order(Sires$year),]
     Bayes.in$Sires<-Sires$n.assign
     ##UPDATE PROPORTION SAMPLED BASED ON KNOWN NUMBER TO START? SAMPLED RANDOMLY SO NOT EQUAL ACROSS YEARS
+    ##CASE 2 (SIRES)
+    
     Bayes.in$proppup<-if(j =="per.male"){rep(1, Bayes.in$Nyrs)} else{rep(sim.per[i], Bayes.in$Nyrs)}
     Bayes.in$propdad<-if(j =="per.male") {rep(sim.per[i], Bayes.in$Nyrs)} else {rep(1, Bayes.in$Nyrs)}
     #Bayes.in$Npuptot<-Npuptot
@@ -754,7 +768,7 @@ for (j in c("per.male", "per.pup")) { ##for either a given percent of pups or ma
   }
 }
 
-sim.out<-rbind(read.csv("sim.out.17Apr2020.csv"), read.csv("sim.out.csv")) ##if run the percent levels in chunks then read all results into one dataframe
+sim.out<-read.csv("sim.out.27Apr2020.csv") ##if run the percent levels in chunks then read all results into one dataframe
 
 sim.out<-data.frame(sim.out); colnames(sim.out)<- c("type","per", "S1mean", "S1q50", "S1q2.5", "S1q97.5", "S2mean", "S2q50", "S2q2.5", "S2q97.5")
 
