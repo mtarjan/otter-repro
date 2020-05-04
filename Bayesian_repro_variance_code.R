@@ -735,18 +735,31 @@ for (j in c("per.male", "per.pup")) { ##for either a given percent of pups or ma
     Bayes.in$Sires<-Sires$n.assign
     ##UPDATE PROPORTION SAMPLED BASED ON KNOWN NUMBER TO START? SAMPLED RANDOMLY SO NOT EQUAL ACROSS YEARS
     ##CASE 1
-    Bayes.in$proppup<-if(j =="per.male"){rep(1, Bayes.in$Nyrs)} else{rep(sim.per[i], Bayes.in$Nyrs)}
-    Bayes.in$propdad<-if(j =="per.male") {rep(sim.per[i], Bayes.in$Nyrs)} else {rep(1, Bayes.in$Nyrs)}
+    #Bayes.in$proppup<-if(j =="per.male"){rep(1, Bayes.in$Nyrs)} else{rep(sim.per[i], Bayes.in$Nyrs)}
+    #Bayes.in$propdad<-if(j =="per.male") {rep(sim.per[i], Bayes.in$Nyrs)} else {rep(1, Bayes.in$Nyrs)}
     ##CASE 2
-    
+    Bayes.in$proppup<-if(j =="per.male") {rep(0.5, Bayes.in$Nyrs)} else{rep(sim.per[i], Bayes.in$Nyrs)}
+    Bayes.in$propdad<-if(j =="per.pup") {rep(0.5, Bayes.in$Nyrs)} else{rep(sim.per[i], Bayes.in$Nyrs)}
     #Bayes.in$Npuptot<-Npuptot
+    ##CASE 1
     if (j=="per.male") {Npupsamp<-sim.pat %>% group_by(year) %>% summarize(n.samp=length(unique(pup))) %>% data.frame() %>% subset(select=n.samp)} else {Npupsamp<-data.frame(year = 1:Bayes.in$Nyrs, n.samp=NA); for (k in Npupsamp$year) {Npupsamp$n.samp[k]<-length(which(sim.pat.test$year==k))}}
+    ##CASE 2
+    ##number of pups sampled in each year
+    Npupsamp<-sim.pat.sub %>% group_by(year) %>% summarize(n.samp=length(unique(pup))) %>% data.frame() %>% subset(select=n.samp)
     Bayes.in$Npupsamp<-Npupsamp$n.samp
     ##obs: matrix- sampled males and years they were active (Males matrix). rows = number of males; columns = number of years. number of pups assigned or -1 if male not active.
-    obs<-matrix(NA,nrow=length(males.test), ncol=Bayes.in$Nyrs)
+    ##CASE 1
+    #obs<-matrix(NA,nrow=length(males.test), ncol=Bayes.in$Nyrs)
+    #for (y in 1:Bayes.in$Nyrs) {
+    #  for (m in 1:length(males.test)) {
+    #    obs[m,y]<-length(which(sim.pat.test$male==males.test[m] & sim.pat.test$year==y))
+    #  }
+    #}
+    ##CASE 2
+    obs<-matrix(NA,nrow=length(sim.males.sub), ncol=Bayes.in$Nyrs)
     for (y in 1:Bayes.in$Nyrs) {
-      for (m in 1:length(males.test)) {
-        obs[m,y]<-length(which(sim.pat.test$male==males.test[m] & sim.pat.test$year==y))
+      for (m in 1:length(sim.males.sub)) {
+        obs[m,y]<-length(which(sim.pat.sub$male==sim.males.sub[m] & sim.pat.sub$year==y))
       }
     }
     Bayes.in$obs<-obs
