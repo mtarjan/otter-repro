@@ -730,11 +730,15 @@ for (j in c("per.male", "per.pup")) { ##for either a given percent of pups or ma
     ##reorder
     Sires<-Sires[order(Sires$year),]
     Bayes.in$Sires<-Sires$n.assign
-    ##UPDATE PROPORTION SAMPLED BASED ON KNOWN NUMBER TO START? SAMPLED RANDOMLY SO NOT EQUAL ACROSS YEARS
     ##CASE 2 (SIRES)
-    
+    Sires<-sim.pat.sub %>% group_by(year) %>% summarize(n.assign=length(unique(male))) %>% data.frame()
+    Bayes.in$Sires<-Sires$n.assign
+    ##UPDATE PROPORTION SAMPLED BASED ON KNOWN NUMBER TO START? SAMPLED RANDOMLY SO NOT EQUAL ACROSS YEARS
+    ##CASE 1
     Bayes.in$proppup<-if(j =="per.male"){rep(1, Bayes.in$Nyrs)} else{rep(sim.per[i], Bayes.in$Nyrs)}
     Bayes.in$propdad<-if(j =="per.male") {rep(sim.per[i], Bayes.in$Nyrs)} else {rep(1, Bayes.in$Nyrs)}
+    ##CASE 2
+    
     #Bayes.in$Npuptot<-Npuptot
     if (j=="per.male") {Npupsamp<-sim.pat %>% group_by(year) %>% summarize(n.samp=length(unique(pup))) %>% data.frame() %>% subset(select=n.samp)} else {Npupsamp<-data.frame(year = 1:Bayes.in$Nyrs, n.samp=NA); for (k in Npupsamp$year) {Npupsamp$n.samp[k]<-length(which(sim.pat.test$year==k))}}
     Bayes.in$Npupsamp<-Npupsamp$n.samp
