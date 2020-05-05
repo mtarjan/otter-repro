@@ -674,6 +674,13 @@ sim.pups.sub<-sample(x=sim.pups, size=length(sim.pups)/2, replace=F)
 sim.males.sub<-sample(x=sim.males, size=length(sim.males)/2, replace=F)
 sim.pat.sub<-subset(sim.pat, pup %in% sim.pups.sub & male %in% sim.males.sub) ##randomly select 50% of pups and 50% of males
 
+#write.csv(data.frame(pups.sub=sim.pups.sub, males.sub=sim.males.sub), str_c(folder, "sim.sampled.ids.csv"), row.names = F)
+##overwrite random selection with saved subset of "sampled" animals
+sim.sampled.ids<-read.csv(str_c(folder, "sim.sampled.ids.csv"))
+sim.pups.sub<-sim.sampled.ids$pups.sub
+sim.males.sub<-sim.sampled.ids$males.sub
+sim.pat.sub<-subset(sim.pat, pup %in% sim.pups.sub & male %in% sim.males.sub) ##randomly select 50% of pups and 50% of males
+
 sim.assign<-data.frame(male=sim.males.sub, n.pup=0); for (j in 1:nrow(sim.assign)) {sim.assign$n.pup[j]<-length(which(sim.pat.sub$male==j))}
 
 hist(sim.assign$n.pup, xlab = "Number of pups sired", main=NA) ##histogram of male repro success (number of pups sired)
@@ -724,12 +731,12 @@ for (j in c("per.male", "per.pup")) { ##for either a given percent of pups or ma
     Bayes.in$Nyrs<-10 ##assume ten years of study
     #Bayes.in$scalefact<-0.9
     ##CASE 1 (SIRES)
-    Sires<-sim.pat.test %>% group_by(year) %>% summarize(n.assign=length(unique(male))) %>% data.frame()
+    #Sires<-sim.pat.test %>% group_by(year) %>% summarize(n.assign=length(unique(male))) %>% data.frame()
     ##add years when there were no pups sired
-    for (k in 1:Bayes.in$Nyrs) {if (length(which(Sires$year==k))==0) {Sires<-rbind(Sires, c(k, 0))}}
+    #for (k in 1:Bayes.in$Nyrs) {if (length(which(Sires$year==k))==0) {Sires<-rbind(Sires, c(k, 0))}}
     ##reorder
-    Sires<-Sires[order(Sires$year),]
-    Bayes.in$Sires<-Sires$n.assign
+    #Sires<-Sires[order(Sires$year),]
+    #Bayes.in$Sires<-Sires$n.assign
     ##CASE 2 (SIRES)
     Sires<-sim.pat.sub %>% group_by(year) %>% summarize(n.assign=length(unique(male))) %>% data.frame()
     Bayes.in$Sires<-Sires$n.assign
@@ -742,7 +749,7 @@ for (j in c("per.male", "per.pup")) { ##for either a given percent of pups or ma
     Bayes.in$propdad<-if(j =="per.pup") {rep(0.5, Bayes.in$Nyrs)} else{rep(sim.per[i], Bayes.in$Nyrs)}
     #Bayes.in$Npuptot<-Npuptot
     ##CASE 1
-    if (j=="per.male") {Npupsamp<-sim.pat %>% group_by(year) %>% summarize(n.samp=length(unique(pup))) %>% data.frame() %>% subset(select=n.samp)} else {Npupsamp<-data.frame(year = 1:Bayes.in$Nyrs, n.samp=NA); for (k in Npupsamp$year) {Npupsamp$n.samp[k]<-length(which(sim.pat.test$year==k))}}
+    #if (j=="per.male") {Npupsamp<-sim.pat %>% group_by(year) %>% summarize(n.samp=length(unique(pup))) %>% data.frame() %>% subset(select=n.samp)} else {Npupsamp<-data.frame(year = 1:Bayes.in$Nyrs, n.samp=NA); for (k in Npupsamp$year) {Npupsamp$n.samp[k]<-length(which(sim.pat.test$year==k))}}
     ##CASE 2
     ##number of pups sampled in each year
     Npupsamp<-sim.pat.sub %>% group_by(year) %>% summarize(n.samp=length(unique(pup))) %>% data.frame() %>% subset(select=n.samp)
