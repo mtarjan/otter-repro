@@ -778,8 +778,8 @@ for (j in c("per.male", "per.pup")) { ##for either a given percent of pups or ma
     
     ##run the bayesian model and get the estimates of svlrs and s3
     var.names<-c('S1', 'S2', 'mu', 'sig', 'bta', 'TSires')
-    burnin<-10000
-    nsamps<-20000
+    burnin<-1000
+    nsamps<-2000
     ##run at 20,000 and 10,000
     nchains<-3
     model <- jags(data = Bayes.in, parameters.to.save = var.names, model.file = "Reproskew_JAGS.txt", n.chains = nchains, n.iter = nsamps, n.burnin = burnin)
@@ -792,7 +792,7 @@ for (j in c("per.male", "per.pup")) { ##for either a given percent of pups or ma
   }
 }
 
-sim.out<-read.csv("sim.out.27Apr2020.csv") ##if run the percent levels in chunks then read all results into one dataframe
+sim.out<-read.csv("sim.out.6May2020.csv") ##if run the percent levels in chunks then read all results into one dataframe
 
 sim.out<-data.frame(sim.out); colnames(sim.out)<- c("type","per", "S1mean", "S1q50", "S1q2.5", "S1q97.5", "S2mean", "S2q50", "S2q2.5", "S2q97.5")
 
@@ -839,6 +839,7 @@ out<-sim.out
 #plot1 <- ggplot(data=out, aes(mean.prop, S1mean)) ##code for sea otter dataset (rather than simulated data)
 plot1 <- ggplot(data=out, aes(per, S1mean, shape=type)) 
 plot1 <- plot1 + geom_point(size=4) + geom_errorbar(aes(ymin=S1q2.5, ymax=S1q97.5), width=0.01) 
+plot1 <- plot1 + facet_wrap(~type) + theme(strip.background = element_blank(), strip.text = element_blank())
 plot1 <- plot1 + theme(panel.grid.minor=element_blank(), panel.grid.major=element_blank(), panel.background=element_blank(), axis.line=element_line(colour="black"), axis.ticks=element_line(colour="black"), axis.text=element_text(colour="black"), axis.text.x=element_text(size=12), axis.text.y=element_text(size=12), axis.title.x=element_text(vjust=0.4, size=12), axis.title.y=element_text(vjust=0.4, size=12)) 
 plot1 <- plot1 + xlab("Estimated proportion of population sampled") +ylab("Standardized variance in LRS")
 plot1 <- plot1 + theme(axis.title.y = element_text(vjust=1)) ##move y axis title away from axis
@@ -850,6 +851,7 @@ plot1
 
 plot2 <- ggplot(data=out, aes(per, S2mean, shape=type)) 
 plot2 <- plot2 + geom_point(size=4) + geom_errorbar(aes(ymin=S2q2.5, ymax=S2q97.5), width=0.01) 
+plot2 <- plot2 + facet_wrap(~type) + theme(strip.background = element_blank(), strip.text = element_blank())
 plot2 <- plot2 + theme(panel.grid.minor=element_blank(), panel.grid.major=element_blank(), panel.background=element_blank(), axis.line=element_line(colour="black"), axis.ticks=element_line(colour="black"), axis.text=element_text(colour="black"), axis.text.x=element_text(size=12), axis.text.y=element_text(size=12), axis.title.x=element_text(vjust=0.4, size=12), axis.title.y=element_text(vjust=0.4, size=12)) 
 plot2 <- plot2 + xlab("Estimated proportion of population sampled") + ylab(expression(italic(S[3])~ "of repro. variance"))
 plot2 <- plot2 + theme(axis.title.y = element_text(vjust=1)) ##move y axis title away from axis
@@ -860,11 +862,10 @@ plot2 <- plot2 + scale_shape_discrete(name = "Population sampled", labels = c("M
 plot2
 
 # Define grid layout to locate plots and print each graph
-grid.arrange(plot1, plot2, ncol=2)
+grid.arrange(plot1, plot2, ncol=1)
 
 
 ##SAVE PLOT
-tiff(str_c(folder, "Figures/sample_size_indices_plot.tiff"), family="Arial", height=7, width=7, units="in", compression="lzw", res=resolution, pointsize = 12)
+tiff(str_c(folder, "Figures/sample_size_indices_plot.tiff"), family="Arial", height=6, width=8, units="in", compression="lzw", res=resolution, pointsize = 12)
 grid.arrange(plot1, plot2, ncol=1)
 dev.off()
-
