@@ -9,12 +9,14 @@ library(ggplot2)
 library(dplyr)
 library(stringr)
 library(jagsUI) ##required for jags function
+#install.packages("beepr")
+library(beepr)
 
 ##PREP DATA
 ##folder with data files
 folder<-"C:/Users/max/Desktop/Tarjan/SSO_research/otter data/"
 
-resolution<-96
+resolution<-300
 
 ##PREP SEA OTTER DATA
 ##create list of potential sampled males and matrix for years they were active
@@ -25,6 +27,14 @@ bd.dates<-read.csv(str_c(folder, "birth_death_dates.csv"))
 prop.samp<-read.csv(str_c(folder, "prop_samp_28Apr16.csv"))
 #ped.dat.y<-read.csv('pedigraph_data_years_5Oct15.csv')
 ped.dat.y<-read.csv(str_c(folder,'pedigraph_data_years_5Oct15.csv'))
+
+##FIGURE 1- NEED TO MAKE IT
+##histogram of number of pups assigned to each male
+#sire.freq<-data.frame(male.id=unique(subset(bd.dates, sex=="M", select = "ID")), n.sire=0)
+##add number of pups sired by each male
+#left_join(x = sire.freq, y = data.frame(table(ped.dat.y$sire)), by = c("ID" = "Var1"))
+#head(sire.freq)
+
 ##terms needed for model
 ##(nmales, Nyrs, scalefact, Sires, proppup, propdad, Npuptot, obs, Nm, M, maleyrs, pi)
 ##nmales = value. number of potential fathers that were sampled
@@ -451,7 +461,7 @@ Tsiresdist_m.hs<-Tsiresdist_m
 Tsiresdist_CI.hs<-Tsiresdist_CI
 
 ##FINAL PLOTS WITH ALL SPECIES
-resolution<-96
+resolution<-600
 
 models<-list()
 models$Enhydra<-model.so
@@ -459,7 +469,7 @@ models$Mirounga<-model.es
 models$Phoca<-model.hs
 
 ##PLOT INDEX 1
-tiff(str_c(folder, "Figures/index1_plot.tiff"), family="Arial", height=6.5, width=7, units="in", compression="lzw", res=resolution, pointsize = 18)
+#tiff(str_c(folder, "Figures/index1_plot.tiff"), family="Arial", height=6.5, width=7, units="in", compression="lzw", res=resolution, pointsize = 18)
 ##get limits
 par(mfrow=c(1,1), mgp=c(1.5,0.5,0), mar=c(3,3,1,1))
 xmax<-0
@@ -481,10 +491,10 @@ for (j in 1:length(models)) {
   abline(v = models[[j]]$q50$S1, lwd=2, col=color[j], lty="dashed")
 }
 legend(x = xmax-xmax/2, y = ymax-ymax/10, legend = c("Sea otter", "Elephant seal", "Harbor seal"), lty = "solid", col = color, bty = "n")
-dev.off()
+#dev.off()
 
 ##PLOT INDEX 2
-tiff(str_c(folder, "Figures/index2_plot.tiff"), family="Arial", height=6.5, width=7, units="in", compression="lzw", res=resolution, pointsize = 18)
+#tiff(str_c(folder, "Figures/index2_plot.tiff"), family="Arial", height=6.5, width=7, units="in", compression="lzw", res=resolution, pointsize = 18)
 ##get limits
 par(mfrow=c(1,1), mgp=c(1.5,0.5,0), mar=c(3,3,1,1))
 xmax<-0
@@ -506,7 +516,7 @@ for (j in 1:length(models)) {
   abline(v = models[[j]]$q50$S2, lwd=2, col=color[j], lty="dashed")
 }
 legend(x = xmax/50, y = ymax-ymax/10, legend = c("Sea otter", "Elephant seal", "Harbor seal"), lty = "solid", col = color, bty = "n")
-dev.off()
+#dev.off()
 
 x.temp<-list()
 x.temp$Enhydra<-x.temp.so
@@ -524,7 +534,7 @@ Tsiresdist_CI$es<-Tsiresdist_CI.es
 Tsiresdist_CI$hs<-Tsiresdist_CI.hs
 
 ##PLOT SIRING FREQUENCY
-tiff(str_c(folder, "Figures/siring_freq_plot.tiff"), family="Arial", height=6.5, width=7, units="in", compression="lzw", res=resolution, pointsize = 18)
+#tiff(str_c(folder, "Figures/siring_freq_plot.tiff"), family="Arial", height=6.5, width=7, units="in", compression="lzw", res=resolution, pointsize = 18)
 par(mfrow=c(1,1), mgp=c(1.5,0.5,0))
 ymax<-0
 for (j in 1:length(Tsiresdist_CI)) {
@@ -542,10 +552,10 @@ for (j in 1:length(models)) {
 }
 legend(x = 12, y = ymax-ymax/10, legend = names(x.temp), col = color, lty = "solid", bty = "n")
 
-dev.off()
+#dev.off()
 
 ##SIRING FREQUENCY PLOT 2
-tiff(str_c(folder, "Figures/siring_freq_plot2.tiff"), family="Arial", height=9, width=6.5, units="in", compression="lzw", res=resolution, pointsize = 18)
+#tiff(str_c(folder, "Figures/siring_freq_plot2.tiff"), family="Arial", height=9, width=6.5, units="in", compression="lzw", res=resolution, pointsize = 18)
 par(mfrow=c(3,1), mgp=c(1.5,0.5,0), mar = c(3,3,1,1))
 ymax<-0
 for (j in 1:length(Tsiresdist_CI)) {
@@ -569,10 +579,10 @@ for (j in 1:length(models)) {
   legend(x = 15, y = ymax-ymax/10, legend = names(x.temp)[j], col = color[j], lty = "solid", bty = "n")
 }
 
-dev.off()
+#dev.off()
 
 ##PLOTS OF BETA 1 AND BETA 2
-tiff(str_c(folder, "Figures/beta_plot.tiff"), family="Arial", height=6.5, width=7, units="in", compression="lzw", res=resolution, pointsize = 18)
+#tiff(str_c(folder, "Figures/beta_plot.tiff"), family="Arial", height=6.5, width=7, units="in", compression="lzw", res=resolution, pointsize = 18)
 #par(mfrow=c(2,1), mar = c(3,3,0.25,0.25), mgp=c(1.5,0.5,0))
 #plot(density(model.so$sims.list$bta1), main="", xlab=expression(beta[1]), lwd=2, ylab="Density")
 #abline(v = model.so$q50$bta1, lwd=2)
@@ -590,11 +600,12 @@ abline(v = model.so$q2.5$bta, lty="dashed", lwd=2)
 abline(v = model.so$q97.5$bta, lty="dashed", lwd=2)
 
 #mtext(text = "Probability density", outer=T, line = 0, side = 2)
-dev.off()
+#dev.off()
 par(mfrow=c(1,1))
 
 ##PLOT SIRING FREQU FOR SEA OTTERS
-tiff(str_c(folder, "Figures/enhydra_siring_freq_plot.tiff"), family="Arial", height=6.5, width=7, units="in", compression="lzw", res=resolution, pointsize = 18)
+#tiff(str_c(folder, "Figures/enhydra_siring_freq_plot.tiff"), family="Arial", height=6.5, width=7, units="in", compression="lzw", res=resolution, pointsize = 18)
+pdf(file = str_c(folder, "Figures/Figure_2.pdf"), height = 2.95, width=3.15, pointsize = 12)
 par(mfrow=c(1,1), mgp=c(1.5,0.5,0), mar=c(3,3,1,1))
 ymax<-0
 for (j in 1) {
@@ -619,7 +630,7 @@ plot1 <-  plot1 + geom_point(size=4) + geom_errorbar(aes(ymin=q2.5, ymax=q97.5),
 plot1 <- plot1 + theme(panel.grid.minor=element_blank(), panel.grid.major=element_blank(), panel.background=element_blank(), axis.line=element_line(colour="black"), axis.ticks=element_line(colour="black"), axis.text=element_text(colour="black"), axis.text.x=element_text(size=12), axis.text.y=element_text(size=12), axis.title.x=element_text(vjust=0.4, size=14), axis.title.y=element_text(vjust=0.4, size=12)) 
 plot1 <- plot1 + xlab("") +ylab("Standardized variance in LRS")
 plot1 <- plot1 + theme(axis.title.y = element_text(vjust=1)) ##move y axis title away from axis
-plot1 <- plot1 + scale_y_continuous(breaks=seq(0,15,2)) ##add more breaks in y axis
+plot1 <- plot1 + scale_y_continuous(breaks=seq(0,15,1)) ##add more breaks in y axis
 plot1 <- plot1 + theme(axis.text.x = element_text(angle = 45, vjust = 1, face = "italic", hjust=1)) ##rotate x axis labels
 plot1
 
@@ -633,7 +644,8 @@ plot2
 # Define grid layout to locate plots and print each graph
 grid.arrange(plot1, plot2, ncol=2)
 
-tiff(str_c(folder, "Figures/variance_indices_plot.tiff"), family="Arial", height=3.5, width=7, units="in", compression="lzw", res=resolution, pointsize = 12)
+#tiff(str_c(folder, "Figures/variance_indices_plot.tiff"), family="Arial", height=3.5, width=7, units="in", compression="lzw", res=resolution, pointsize = 12)
+pdf(str_c(folder, "Figures/Figure_3.pdf"), height = 3.55, width = 7.09, pointsize=12)
 grid.arrange(plot1, plot2, ncol=2)
 dev.off()
 
@@ -696,6 +708,7 @@ s3<-(nrow(sim.assign)-1/sum(sim.assign$n.pup/sum(sim.assign$n.pup^2)))/(nrow(sim
 ##percent of population sampled
 sim.per<-c(.10,.20,.30,.40,.50,.60,.70,.80,.90, 1) ##this now represents the percent of the population that we think we sampled, where .5 (50%) is the true value
 sim.out<-dim(0)
+j<-"per.pup"; i<-10
 for (j in c("per.male", "per.pup")) { ##for either a given percent of pups or males
   for (i in 1:length(sim.per)) { ##for each sample percent
     ##CODE FOR CASE 1
@@ -778,8 +791,8 @@ for (j in c("per.male", "per.pup")) { ##for either a given percent of pups or ma
     
     ##run the bayesian model and get the estimates of svlrs and s3
     var.names<-c('S1', 'S2', 'mu', 'sig', 'bta', 'TSires')
-    burnin<-1000
-    nsamps<-2000
+    burnin<-10000
+    nsamps<-20000
     ##run at 20,000 and 10,000
     nchains<-3
     model <- jags(data = Bayes.in, parameters.to.save = var.names, model.file = "Reproskew_JAGS.txt", n.chains = nchains, n.iter = nsamps, n.burnin = burnin)
@@ -789,6 +802,7 @@ for (j in c("per.male", "per.pup")) { ##for either a given percent of pups or ma
     
     ##write output to file
     write.csv(sim.out, "sim.out.csv", row.names = F)
+    beep() ##make a sound when this iteration is finished running
   }
 }
 
@@ -845,7 +859,7 @@ plot1 <- plot1 + xlab("Estimated proportion of population sampled") +ylab("Stand
 plot1 <- plot1 + theme(axis.title.y = element_text(vjust=1)) ##move y axis title away from axis
 plot1 <- plot1 + scale_y_continuous(breaks=round(seq(0,max(out$S1q97.5), max(out$S1q97.5)/10),2)) ##add more breaks in y axis
 plot1 <- plot1 + theme(axis.text.x = element_text(vjust = 1)) ##rotate x axis labels
-plot1 <- plot1 + scale_x_continuous(breaks = seq(0,1,0.1))
+plot1 <- plot1 + scale_x_continuous(breaks = seq(0,1,0.2))
 plot1 <- plot1 + scale_shape_discrete(name = "Population sampled", labels = c("Male", "Pup")) + theme(legend.key = element_rect(fill = NA, color = NA))
 plot1
 
@@ -857,7 +871,7 @@ plot2 <- plot2 + xlab("Estimated proportion of population sampled") + ylab(expre
 plot2 <- plot2 + theme(axis.title.y = element_text(vjust=1)) ##move y axis title away from axis
 plot2 <- plot2 + scale_y_continuous(breaks=seq(0,1, 0.05)) ##add more breaks in y axis
 plot2 <- plot2 + theme(axis.text.x = element_text(vjust = 1)) ##rotate x axis labels
-plot2 <- plot2 + scale_x_continuous(breaks = seq(0,1,0.1))
+plot2 <- plot2 + scale_x_continuous(breaks = seq(0,1,0.2))
 plot2 <- plot2 + scale_shape_discrete(name = "Population sampled", labels = c("Male", "Pup")) + theme(legend.key = element_rect(fill = NA, color = NA))
 plot2
 
@@ -866,6 +880,7 @@ grid.arrange(plot1, plot2, ncol=1)
 
 
 ##SAVE PLOT
-tiff(str_c(folder, "Figures/sample_size_indices_plot.tiff"), family="Arial", height=6, width=8, units="in", compression="lzw", res=resolution, pointsize = 12)
+#tiff(str_c(folder, "Figures/sample_size_indices_plot.tiff"), family="Arial", height=6, width=8, units="in", compression="lzw", res=resolution, pointsize = 12)
+pdf(str_c(folder, "Figures/Figure_4.pdf"), height = 5.32, width = 7.09, pointsize=12)
 grid.arrange(plot1, plot2, ncol=1)
 dev.off()

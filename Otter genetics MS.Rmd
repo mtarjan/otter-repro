@@ -23,6 +23,9 @@ Sea otters had lower estimated reproductive variance than elephant seals (standa
 ##Model Sensitivity
 We evaluated model sensitivity by measuring the effect of varying model inputs (specifically estimated male population size) on model outputs (i.e. estimated reproductive variance) using the sea otter paternity data. A 50% decrease in our estimate of the proportion of males sampled, which corresponds to a 100% increase in estimated male population size, led to only a `r round((subset(out, per.change==-50)$S2q50-subset(out, per.change==0)$S2q50)/subset(out, per.change==0)$S2q50*100,0)`% decrease in the median estimated reproductive variance (i.e. S3) and the median remained within the 95% confidence intervals of the original estimate (Figure 5). These results illustrate that estimated male population size had a negligible effect on estimated reproductive variance, and that the model is robust to large error in estimated population size.
 
+##Model Sensitivity for a Simulated Dataset
+A change in the estimated proportion of the males sampled from 0.5 (to true value) to 0.2 led to a `r round((subset(out, per==.2 & type=="per.male")$S2q50-subset(out, per==0.5 & type=="per.male")$S2q50)/subset(out, per==0.5 & type=="per.male")$S2q50*100,0)`% change in the median estimated reproductive variance (i.e. S3) and the median remained within the 95% confidence intervales of the original estimate.
+
 #Figures
 ```{r, echo=FALSE}
 knitr::include_graphics(path=str_c(folder, "Figures/enhydra_siring_freq_plot.tiff"))
