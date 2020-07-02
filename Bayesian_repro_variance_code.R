@@ -16,7 +16,7 @@ library(beepr)
 ##folder with data files
 folder<-"C:/Users/max/Desktop/Tarjan/SSO_research/otter data/"
 
-resolution<-300
+resolution<-96
 
 ##PREP SEA OTTER DATA
 ##create list of potential sampled males and matrix for years they were active
@@ -27,13 +27,6 @@ bd.dates<-read.csv(str_c(folder, "birth_death_dates.csv"))
 prop.samp<-read.csv(str_c(folder, "prop_samp_28Apr16.csv"))
 #ped.dat.y<-read.csv('pedigraph_data_years_5Oct15.csv')
 ped.dat.y<-read.csv(str_c(folder,'pedigraph_data_years_5Oct15.csv'))
-
-##FIGURE 1- NEED TO MAKE IT
-##histogram of number of pups assigned to each male
-#sire.freq<-data.frame(male.id=unique(subset(bd.dates, sex=="M", select = "ID")), n.sire=0)
-##add number of pups sired by each male
-#left_join(x = sire.freq, y = data.frame(table(ped.dat.y$sire)), by = c("ID" = "Var1"))
-#head(sire.freq)
 
 ##terms needed for model
 ##(nmales, Nyrs, scalefact, Sires, proppup, propdad, Npuptot, obs, Nm, M, maleyrs, pi)
@@ -162,6 +155,24 @@ model <- jags(data = Bayes.in, parameters.to.save = var.names, model.file = "Rep
 model
 
 ##PLOTS
+
+##FIGURE 1- NEED TO MAKE IT
+##histogram of number of pups assigned to each male
+sire.freq<-subset(data.frame(table(ped.dat.y$sire)), Var1!=0); colnames(sire.freq)<-c("ID", "n.pup")
+sire.freq<-rbind(sire.freq, data.frame(ID = factor(x = 1:(nmales-nrow(sire.freq))), n.pup= 0))
+sire.freq <- table(sire.freq$n.pup) %>% data.frame(); colnames(sire.freq)<-c("n.pup", "Freq")
+sire.freq$per<-sire.freq$Freq/sum(sire.freq$Freq)*100
+
+fig <- ggplot(data = sire.freq, aes(x = n.pup, y= per))
+fig <- fig + geom_col(width= 1, fill="grey", color="black")
+fig <- fig + theme(panel.grid.minor=element_blank(), panel.grid.major=element_blank(), panel.background=element_blank(), axis.line=element_line(colour="black"), axis.ticks=element_line(colour="black"), axis.text=element_text(colour="black"), axis.text.x=element_text(size=12), axis.text.y=element_text(size=12), axis.title.x=element_text(vjust=0.4, size=12), axis.title.y=element_text(vjust=0.4, size=12)) + theme(axis.title.y = element_text(vjust=2.25)) ##move y axis title away from axis
+fig <- fig + xlab("Paternities") + ylab("Percent of males") 
+fig <- fig + scale_y_continuous(breaks = seq(0,90,10), labels = seq(0,90,10), limits = c(0,90), expand = c(0,0)) ##add more breaks in y axis
+fig
+
+pdf(str_c(folder, "Figures/Figure_1.pdf"), height = 3.55, width = 3.15, pointsize=12)
+fig
+dev.off()
 
 #tiff("Figures_genetics/index1_plot.tiff", family="Arial", height=6.5, width=7, units="in", compression="lzw", res=resolution, pointsize = 14)
 plot(density(model$sims.list$S1), xlab='Index 1', col="black", lwd=2, main=""); 
@@ -605,7 +616,6 @@ par(mfrow=c(1,1))
 
 ##PLOT SIRING FREQU FOR SEA OTTERS
 #tiff(str_c(folder, "Figures/enhydra_siring_freq_plot.tiff"), family="Arial", height=6.5, width=7, units="in", compression="lzw", res=resolution, pointsize = 18)
-pdf(file = str_c(folder, "Figures/Figure_2.pdf"), height = 2.95, width=3.15, pointsize = 12)
 par(mfrow=c(1,1), mgp=c(1.5,0.5,0), mar=c(3,3,1,1))
 ymax<-0
 for (j in 1) {
@@ -619,7 +629,21 @@ j<-1
 plot(x = x.temp[[j]], y = Tsiresdist_m[[j]], type="l", xlab='Surviving female pups', ylab='Proportion of Males', col=color[j], ylim=c(0.007, ymax), xlim=c(0.7, 19.4))
 polygon(x = c(x.temp[[j]], rev(x.temp[[j]])), y = c(Tsiresdist_CI[[j]][1,], rev(Tsiresdist_CI[[j]][2,])), col=poly.color[j], border = NA)
 lines(x = x.temp[[j]], y = Tsiresdist_m[[j]], col=color[j], lwd=2)
+#dev.off()
 
+pdf(file = str_c(folder, "Figures/Figure_2.pdf"), height = 2.25, width=3.15, pointsize = 12)
+data.plot<- data.frame(x.temp = x.temp$Enhydra, Tsiresdist_m = Tsiresdist_m$so, Tsiresdist_CI_l = Tsiresdist_CI$so[1,], Tsiresdist_CI_u = Tsiresdist_CI$so[2,])
+
+fig <- ggplot(data = data.plot, aes(x = x.temp, y = Tsiresdist_m))
+fig <- fig + geom_line(size=1.2)
+fig <- fig + geom_ribbon(aes(ymin=Tsiresdist_CI_l, ymax=Tsiresdist_CI_u),alpha=0.3)
+fig <- fig + theme(panel.grid.minor=element_blank(), panel.grid.major=element_blank(), panel.background=element_blank(), axis.line=element_line(colour="black"), axis.ticks=element_line(colour="black"), axis.text=element_text(colour="black"), axis.text.x=element_text(size=12), axis.text.y=element_text(size=12), axis.title.x=element_text(vjust=0.4, size=12), axis.title.y=element_text(vjust=0.4, size=12)) + theme(axis.title.y = element_text(vjust=2.25)) ##move y axis title away from axis
+fig <- fig + xlab("Surviving female pups") + ylab("Proportion of males")
+fig <- fig + scale_x_continuous(breaks = seq(0,20,2), expand = c(0,0))
+fig <- fig + scale_y_continuous(breaks = seq(0,0.2, 0.04), limits = c(0,max(data.plot$Tsiresdist_CI_u)), expand = c(0,0)) ##add more breaks in y axis
+fig <- fig + theme(plot.margin = margin(0.25, 0.5, 0.25, 0.25, "cm"))
+fig
+  
 dev.off()
 
 ##PLOT SKEW INDICES AS MEDIAN WITH CI
